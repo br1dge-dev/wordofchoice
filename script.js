@@ -5,11 +5,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const highlight = document.getElementById('highlight-word');
     const editBtn = document.getElementById('edit-btn');
     const editIcon = document.getElementById('edit-icon');
+    const counter = document.getElementById('counter');
+    const resetCounterBtn = document.getElementById('reset-counter');
     let isEditing = false;
     let input;
+    // Counter aus localStorage laden
+    let count = parseInt(localStorage.getItem('wordofchoice_counter') || '1', 10);
+    counter.textContent = `#${count}`;
 
     const editSVG = `<svg id=\"edit-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><path d=\"M20 12H7M11 8l-4 4 4 4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
     const saveSVG = `<svg id=\"save-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><rect x=\"8\" y=\"16\" width=\"8\" height=\"2\" fill=\"currentColor\"/><rect x=\"8\" y=\"8\" width=\"8\" height=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>`;
+
+    function incrementCounter() {
+        count++;
+        counter.textContent = `#${count}`;
+        localStorage.setItem('wordofchoice_counter', count);
+    }
+    function resetCounter() {
+        count = 1;
+        counter.textContent = `#${count}`;
+        localStorage.setItem('wordofchoice_counter', count);
+    }
+    resetCounterBtn.addEventListener('click', resetCounter);
 
     // Toggle dark/light mode
     toggleButton.addEventListener('click', () => {
@@ -65,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Icon zurück zu "Edit"
             editIcon.innerHTML = editSVG;
             isEditing = false;
+            incrementCounter();
         }
     });
 
