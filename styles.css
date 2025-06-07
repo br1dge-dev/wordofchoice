@@ -5,8 +5,8 @@
 }
 
 body {
-    background-color: #333333;
-    color: #F9F6EE;
+    background-color: #2C241B;
+    color: #F5E9D4;
     font-family: Arial, sans-serif;
     transition: background-color 0.5s, color 0.5s;
     min-height: 100vh;
@@ -18,8 +18,8 @@ body {
 }
 
 body.toggled {
-    background-color: #F9F6EE;
-    color: #333333;
+    background-color: #F5E9D4;
+    color: #2C241B;
 }
 
 body::before {
@@ -65,8 +65,8 @@ body::before {
 }
 
 .highlight {
-    background-color: #F9F6EE;
-    color: #333333;
+    background-color: #F5E9D4;
+    color: #2C241B;
     padding: 0.1em 0.5vw;
     transition: background-color 0.5s, color 0.5s;
     font-weight: bold;
@@ -81,8 +81,8 @@ body::before {
 }
 
 body.toggled .highlight {
-    background-color: #333333;
-    color: #F9F6EE;
+    background-color: #2C241B;
+    color: #F5E9D4;
 }
 
 .break {
@@ -109,8 +109,8 @@ body.toggled .highlight {
     transform: translate(-50%, -110%);
     z-index: 2;
     margin: 0;
-    background: #F9F6EE;
-    color: #333333;
+    background: #F5E9D4;
+    color: #2C241B;
     border: none;
     border-radius: 0.2em;
     width: 6.4vw;
@@ -124,7 +124,7 @@ body.toggled .highlight {
     justify-content: center;
     font-size: 3.5vw;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(51,51,51,0.08);
+    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
     transition: background 0.3s, color 0.3s, transform 0.2s;
     outline: none;
 }
@@ -134,8 +134,38 @@ body.toggled .highlight {
 }
 
 body.toggled .toggle-button {
-    background: #333333;
-    color: #F9F6EE;
+    background: #2C241B;
+    color: #F5E9D4;
+}
+
+.edit-button {
+    background: #F5E9D4;
+    color: #2C241B;
+    border: none;
+    border-radius: 0.2em;
+    width: 6.4vw;
+    height: 6.4vw;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 90px;
+    max-height: 90px;
+    margin-left: 0.5em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5vw;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    vertical-align: middle;
+    outline: none;
+    position: relative;
+    z-index: 2;
+}
+
+body.toggled .edit-button {
+    background: #2C241B;
+    color: #F5E9D4;
 }
 
 .headline-row {
@@ -159,56 +189,12 @@ body.toggled .toggle-button {
     }
 }
 
-.edit-button {
-    background: #F9F6EE;
-    color: #333333;
-    border: none;
-    border-radius: 0.2em;
-    width: 6.4vw;
-    height: 6.4vw;
-    min-width: 40px;
-    min-height: 40px;
-    max-width: 90px;
-    max-height: 90px;
-    margin-left: 0.5em;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3.5vw;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(51,51,51,0.08);
-    transition: background 0.3s, color 0.3s, transform 0.2s;
-    vertical-align: middle;
-    outline: none;
-    position: relative;
-    z-index: 2;
-}
-
-.edit-button:hover {
-    transform: scale(1.08);
-}
-
-body.toggled .edit-button {
-    background: #333333;
-    color: #F9F6EE;
-}
-
-#edit-icon svg {
-    width: 3.5vw;
-    height: 3.5vw;
-    min-width: 24px;
-    min-height: 24px;
-    max-width: 48px;
-    max-height: 48px;
-    display: block;
-}
-
 .edit-input {
     font-size: 7.68vw;
     font-weight: bold;
-    background: #F9F6EE;
-    color: #333333;
-    border: 2px solid #333333;
+    background: #F5E9D4;
+    color: #2C241B;
+    border: 2px solid #2C241B;
     border-radius: 0.2em;
     padding: 0.1em 0.3em;
     width: 2.5em;
@@ -227,6 +213,12 @@ body.toggled .edit-button {
     line-height: 1.1;
 }
 
+body.toggled .edit-input {
+    background: #2C241B;
+    color: #F5E9D4;
+    border: 2px solid #F5E9D4;
+}
+
 .edit-input::placeholder {
     color: #b0aca3;
     opacity: 1;
@@ -234,11 +226,6 @@ body.toggled .edit-button {
     letter-spacing: 0.04em;
     text-align: center;
     padding: 0;
-}
-body.toggled .edit-input {
-    background: #333333;
-    color: #F9F6EE;
-    border: 2px solid #F9F6EE;
 }
 
 .edit-input.hide {
@@ -260,4 +247,14 @@ body.toggled .edit-input {
     text-decoration: line-through;
     opacity: 0.5;
     transition: color 0.5s, text-decoration 0.5s, opacity 0.5s;
+}
+
+#edit-icon svg {
+    width: 3.5vw;
+    height: 3.5vw;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 48px;
+    max-height: 48px;
+    display: block;
 } 
