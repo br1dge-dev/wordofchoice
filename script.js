@@ -9,9 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetCounterBtn = document.getElementById('reset-counter');
     let isEditing = false;
     let input;
-    // Counter global von API laden
-    let count = parseInt(localStorage.getItem('wordofchoice_counter') || '1', 10);
-    counter.textContent = `#${count}`;
+    let count;
+    // Animierter Platzhalter für Counter
+    let dots = 0;
+    let loadingInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        counter.textContent = '#' + '.'.repeat(dots || 1);
+    }, 400);
 
     const editSVG = `<svg id=\"edit-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><path d=\"M20 12H7M11 8l-4 4 4 4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
     const saveSVG = `<svg id=\"save-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><rect x=\"8\" y=\"16\" width=\"8\" height=\"2\" fill=\"currentColor\"/><rect x=\"8\" y=\"8\" width=\"8\" height=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>`;
@@ -22,8 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/counter');
             const data = await res.json();
             count = data.count;
+            clearInterval(loadingInterval);
             counter.textContent = `#${count}`;
         } catch (e) {
+            clearInterval(loadingInterval);
             counter.textContent = '#?';
         }
     }
