@@ -47,18 +47,23 @@ async function setCounter(newCount) {
 }
 
 export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    const count = await getCounter();
-    res.status(200).json({ count });
-  } else if (req.method === 'POST') {
-    let count = await getCounter();
-    count++;
-    await setCounter(count);
-    res.status(200).json({ count });
-  } else if (req.method === 'DELETE') {
-    await setCounter(1);
-    res.status(200).json({ count: 1 });
-  } else {
-    res.status(405).end();
+  try {
+    if (req.method === 'GET') {
+      const count = await getCounter();
+      res.status(200).json({ count });
+    } else if (req.method === 'POST') {
+      let count = await getCounter();
+      count++;
+      await setCounter(count);
+      res.status(200).json({ count });
+    } else if (req.method === 'DELETE') {
+      await setCounter(1);
+      res.status(200).json({ count: 1 });
+    } else {
+      res.status(405).end();
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.toString() });
   }
 } 
