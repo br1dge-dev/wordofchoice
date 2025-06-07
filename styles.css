@@ -67,11 +67,17 @@ body::before {
 .highlight {
     background-color: #F9F6EE;
     color: #333333;
-    padding: 0 0.5vw;
+    padding: 0.1em 0.5vw;
     transition: background-color 0.5s, color 0.5s;
     font-weight: bold;
-    font-size: 8.32vw;
+    font-size: 7.68vw;
     display: inline-block;
+    border-radius: 0.2em;
+    vertical-align: middle;
+    min-width: 2.5em;
+    min-height: 1.2em;
+    text-align: center;
+    line-height: 1.1;
 }
 
 body.toggled .highlight {
@@ -97,36 +103,39 @@ body.toggled .highlight {
 }
 
 .toggle-button {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, -110%);
+    z-index: 2;
+    margin: 0;
+    background: #F9F6EE;
+    color: #333333;
+    border: none;
+    border-radius: 0.2em;
     width: 6.4vw;
     height: 6.4vw;
     min-width: 40px;
     min-height: 40px;
     max-width: 90px;
     max-height: 90px;
-    font-size: 3.5vw;
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, -110%);
-    z-index: 2;
-    margin: 0;
-    transition: background-color 0.5s, color 0.5s, transform 0.4s cubic-bezier(.68,-0.55,.27,1.55);
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #F9F6EE;
-    color: #333333;
-    border: none;
-    border-radius: 50%;
-    box-shadow: 0 2px 16px rgba(51,51,51,0.08);
-}
-
-body.toggled .toggle-button {
-    background-color: #333333;
-    color: #F9F6EE;
+    font-size: 3.5vw;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(51,51,51,0.08);
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    outline: none;
 }
 
 .toggle-button:hover {
-    transform: translate(-50%, -110%) rotate(90deg) scale(1.08);
+    transform: translate(-50%, -110%) scale(1.08);
+}
+
+body.toggled .toggle-button {
+    background: #333333;
+    color: #F9F6EE;
 }
 
 .headline-row {
@@ -148,4 +157,107 @@ body.toggled .toggle-button {
     .toggle-button {
         margin-bottom: 2vw;
     }
+}
+
+.edit-button {
+    background: #F9F6EE;
+    color: #333333;
+    border: none;
+    border-radius: 0.2em;
+    width: 6.4vw;
+    height: 6.4vw;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 90px;
+    max-height: 90px;
+    margin-left: 0.5em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5vw;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(51,51,51,0.08);
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    vertical-align: middle;
+    outline: none;
+    position: relative;
+    z-index: 2;
+}
+
+.edit-button:hover {
+    transform: scale(1.08);
+}
+
+body.toggled .edit-button {
+    background: #333333;
+    color: #F9F6EE;
+}
+
+#edit-icon svg {
+    width: 3.5vw;
+    height: 3.5vw;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 48px;
+    max-height: 48px;
+    display: block;
+}
+
+.edit-input {
+    font-size: 7.68vw;
+    font-weight: bold;
+    background: #F9F6EE;
+    color: #333333;
+    border: 2px solid #333333;
+    border-radius: 0.2em;
+    padding: 0.1em 0.3em;
+    width: 2.5em;
+    min-width: 2em;
+    max-width: 6em;
+    outline: none;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-left: 0.1em;
+    transition: width 0.3s, background 0.3s, color 0.3s, border 0.3s;
+    box-sizing: border-box;
+    display: inline-block;
+    opacity: 1;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1.1;
+}
+
+.edit-input::placeholder {
+    color: #b0aca3;
+    opacity: 1;
+    font-size: 1.6vw;
+    letter-spacing: 0.04em;
+    text-align: center;
+    padding: 0;
+}
+body.toggled .edit-input {
+    background: #333333;
+    color: #F9F6EE;
+    border: 2px solid #F9F6EE;
+}
+
+.edit-input.hide {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    border: none;
+    margin-left: 0;
+    pointer-events: none;
+    transition: width 0.3s, opacity 0.3s, padding 0.3s, border 0.3s, margin 0.3s;
+}
+
+.toggle-text {
+    position: relative;
+    transition: color 0.5s, text-decoration 0.5s;
+}
+
+.toggle-text.strikethrough {
+    text-decoration: line-through;
+    opacity: 0.5;
+    transition: color 0.5s, text-decoration 0.5s, opacity 0.5s;
 } 
