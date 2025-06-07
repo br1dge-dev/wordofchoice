@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>word of CHOICE by br1dge</title>
     <meta name="title" content="word of CHOICE by br1dge">
-    <meta name="description" content="an EXPERIMENT that defintely made a lot of fun.">
+    <meta name="description" content="An interactive, minimalistic EXPERIMENT, full of expression. Made by br1dge, purely vibe-coded.">
     <meta property="og:title" content="word of CHOICE by br1dge">
     <meta property="og:description" content="an EXPERIMENT that defintely made a lot of fun.">
     <meta property="og:image" content="https://br1dge-dev.github.io/wordofchoice/og-image.jpg">
@@ -14,29 +14,41 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="counter-bar">
-        <span id="counter" class="counter">#1</span>
-        <button id="reset-counter" class="reset-counter" aria-label="Reset Counter">⟲</button>
+    <div class="page-container">
+        <div class="counter-bar">
+            <span id="counter" class="counter">#1</span>
+            <button id="reset-counter" class="reset-counter" aria-label="Reset Counter">⟲</button>
+        </div>
+        <div class="container">
+            <h1 class="text">
+                <span class="headline-word">The</span>
+                <span class="toggle-word-wrapper">
+                    <button class="toggle-button"><span>⟳</span></button>
+                    <span class="toggle-text">worst</span>
+                </span>
+                <span class="headline-word">thing</span>
+                <br>
+                <span class="single-line">
+                    about life is <span class="highlight" id="highlight-word">pizza</span>
+                    <button class="edit-button" id="edit-btn" aria-label="Bearbeiten">
+                        <span id="edit-icon">
+                            <svg id="edit-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M20 12H7M11 8l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                        </span>
+                    </button>
+                </span>
+            </h1>
+        </div>
     </div>
-    <div class="container">
-        <h1 class="text">
-            <span class="headline-word">The</span>
-            <span class="toggle-word-wrapper">
-                <button class="toggle-button"><span>⟳</span></button>
-                <span class="toggle-text">worst</span>
-            </span>
-            <span class="headline-word">thing</span>
-            <br>
-            <span class="single-line">
-                about life is <span class="highlight" id="highlight-word">pizza</span>
-                <button class="edit-button" id="edit-btn" aria-label="Bearbeiten">
-                    <span id="edit-icon">
-                        <svg id="edit-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M20 12H7M11 8l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-                    </span>
-                </button>
-            </span>
-        </h1>
-    </div>
+    <section class="info-section">
+        <h2 class="info-headline">word of <span class="highlight info-highlight">CHOICE</span></h2>
+        <p class="info-text">Feel your mood, pick a word and mint your statement. Nicely numbered. An interactive, minimalistic EXPERIMENT, full of expression. Made by br1dge, purely vibe-coded.</p>
+        <div class="info-details">
+            <span class="mint-detail">mint: <b>tbd</b></span>
+            <span class="cost-detail">chain: <b>tbd</b></span>
+            <span class="price-detail">price: <b>tbd</b></span>
+            <span class="social-detail">socials: <a href="#" aria-label="X">X</a></span>
+        </div>
+    </section>
     <script src="script.js"></script>
 </body>
 </html> 
