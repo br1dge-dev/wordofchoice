@@ -6,15 +6,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const editBtn = document.getElementById('edit-btn');
     const editIcon = document.getElementById('edit-icon');
     const counter = document.getElementById('counter');
-    const resetCounterBtn = document.getElementById('reset-counter');
     let isEditing = false;
     let input;
     let count;
-    // Animierter Platzhalter für Counter
-    let dots = 0;
+    // Animierter Platzhalter für Counter (Tier-Emoji)
+    const animalFrames = [
+        'ʕ◴ᴥ◴ʔ',
+        'ʕ◷ᴥ◷ʔ',
+        'ʕ◶ᴥ◶ʔ',
+        'ʕ◵ᴥ◵ʔ'
+    ];
+    let animalIndex = 0;
     let loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        counter.textContent = '#' + '.'.repeat(dots || 1);
+        counter.textContent = '#' + animalFrames[animalIndex];
+        animalIndex = (animalIndex + 1) % animalFrames.length;
     }, 400);
 
     const editSVG = `<svg id=\"edit-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><path d=\"M20 12H7M11 8l-4 4 4 4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
@@ -30,7 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
             counter.textContent = `#${count}`;
         } catch (e) {
             clearInterval(loadingInterval);
-            counter.textContent = '#?';
+            // Tier-Animation als Fallback weiterlaufen lassen
+            loadingInterval = setInterval(() => {
+                counter.textContent = '#' + animalFrames[animalIndex];
+                animalIndex = (animalIndex + 1) % animalFrames.length;
+            }, 400);
         }
     }
     async function incrementCounter() {
@@ -53,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
             counter.textContent = '#?';
         }
     }
-    resetCounterBtn.addEventListener('click', resetCounter);
     fetchCounter();
 
     // Toggle dark/light mode
@@ -73,13 +81,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Highlight-Word global laden
+    let wordInterval = null;
     async function fetchWord() {
+        if (wordInterval) clearInterval(wordInterval);
+        let wordIndex = 0;
+        const wordFrames = [
+            'ʕ◴ᴥ◴ʔ',
+            'ʕ◷ᴥ◷ʔ',
+            'ʕ◶ᴥ◶ʔ',
+            'ʕ◵ᴥ◵ʔ'
+        ];
+        highlight.textContent = wordFrames[wordIndex];
+        wordInterval = setInterval(() => {
+            highlight.textContent = wordFrames[wordIndex];
+            wordIndex = (wordIndex + 1) % wordFrames.length;
+        }, 400);
         try {
             const res = await fetch('/api/word');
             const data = await res.json();
+            clearInterval(wordInterval);
+            wordInterval = null;
             highlight.textContent = data.word || 'WORD';
         } catch (e) {
-            highlight.textContent = 'WORD';
+            // Animation läuft weiter, bis fetchWord erneut erfolgreich ist
         }
     }
     // Highlight-Word global speichern

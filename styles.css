@@ -124,13 +124,12 @@ body.toggled .highlight {
     margin: 0 0.5vw;
 }
 
-.toggle-button, .edit-button, .reset-counter {
+.toggle-button, .edit-button {
     background: #F5E9D4;
     color: #2C241B;
 }
 body.toggled .toggle-button,
-body.toggled .edit-button,
-body.toggled .reset-counter {
+body.toggled .edit-button {
     background: #2C241B;
     color: #F5E9D4;
 }
@@ -181,20 +180,6 @@ body.toggled .reset-counter {
     z-index: 2;
 }
 
-.reset-counter {
-    width: 2.25em;
-    height: 2.25em;
-    font-size: 2vw;
-    margin-left: 0.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
-    transition: background 0.3s, color 0.3s, transform 0.2s;
-    outline: none;
-}
-
 .toggle-button svg {
     width: 2.2rem;
     height: 2.2rem;
@@ -212,15 +197,6 @@ body.toggled .reset-counter {
     max-width: 48px;
     max-height: 48px;
     display: block;
-}
-
-.reset-counter svg {
-    width: 2.2rem;
-    height: 2.2rem;
-    min-width: 32px;
-    min-height: 32px;
-    max-width: 48px;
-    max-height: 48px;
 }
 
 .headline-row {
@@ -249,14 +225,14 @@ body.toggled .reset-counter {
         font-size: 1.3rem;
         padding: 2.5vw 4vw;
     }
-    .toggle-button, .edit-button, .reset-counter {
+    .toggle-button, .edit-button {
         font-size: 2rem;
         min-width: 48px;
         min-height: 48px;
         max-width: 80px;
         max-height: 80px;
     }
-    #edit-icon svg, .toggle-button svg, .reset-counter svg {
+    #edit-icon svg, .toggle-button svg {
         width: 2.2rem;
         height: 2.2rem;
         min-width: 32px;
@@ -484,7 +460,7 @@ body.toggled .info-highlight {
     .info-text, .info-details, .mint-detail, .cost-detail, .social-detail {
         font-size: 2.42vw;
     }
-    .toggle-button, .edit-button, .reset-counter {
+    .toggle-button, .edit-button {
         font-size: 4.2vw;
     }
     .counter {
@@ -571,4 +547,37 @@ body.toggled .mint-btn {
 body.toggled .mint-price {
     background: #2C241B;
     color: #F5E9D4;
+}
+
+.superscript {
+    position: absolute;
+    top: 0.18em;
+    right: 0.22em;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #35ddd4;
+    text-shadow: 0 1px 2px rgba(44,36,27,0.10);
+    pointer-events: none;
+    z-index: 2;
+}
+.toggle-button, .edit-button, .mint-btn {
+    position: relative;
+}
+
+.badge {
+    position: absolute;
+    top: 0.13em;
+    right: 0.18em;
+    font-size: 0.95em;
+    font-weight: bold;
+    color: #fff;
+    background: #35ddd4;
+    border-radius: 1em;
+    padding: 0.08em 0.48em 0.08em 0.48em;
+    box-shadow: 0 1px 2px rgba(44,36,27,0.10);
+    pointer-events: none;
+    z-index: 2;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    display: inline-block;
 } 
