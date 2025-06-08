@@ -109,7 +109,7 @@ body.toggled .highlight {
 .headline-flex {
     display: flex;
     flex-direction: row;
-    align-items: flex-end;
+    align-items: baseline;
     justify-content: center;
     gap: 0.5vw;
     flex-wrap: wrap;
@@ -124,38 +124,41 @@ body.toggled .highlight {
     margin: 0 0.5vw;
 }
 
-.toggle-button {
-    position: static;
-    transform: none;
-    margin: 0;
+.toggle-button, .edit-button, .reset-counter {
     background: #F5E9D4;
     color: #2C241B;
-    border: none;
-    border-radius: 0.2em;
-    width: 5.76vw;
-    height: 5.76vw;
-    min-width: 36px;
-    min-height: 36px;
-    max-width: 81px;
-    max-height: 81px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3.5vw;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
-    transition: background 0.3s, color 0.3s, transform 0.2s;
-    outline: none;
 }
-
-body.toggled .toggle-button {
+body.toggled .toggle-button,
+body.toggled .edit-button,
+body.toggled .reset-counter {
     background: #2C241B;
     color: #F5E9D4;
 }
 
+.toggle-button {
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.1em;
+    width: 1.1em;
+    font-size: 1em;
+    line-height: 1;
+    margin: 0 0.3vw;
+    border: none;
+    border-radius: 0.2em;
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 81px;
+    max-height: 81px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    outline: none;
+    margin-top: -0.12em;
+}
+
 .edit-button {
-    background: #F5E9D4;
-    color: #2C241B;
     border: none;
     border-radius: 0.2em;
     width: 5.76vw;
@@ -178,16 +181,7 @@ body.toggled .toggle-button {
     z-index: 2;
 }
 
-body.toggled .edit-button {
-    background: #2C241B;
-    color: #F5E9D4;
-}
-
 .reset-counter {
-    background: #F5E9D4;
-    color: #2C241B;
-    border: none;
-    border-radius: 0.2em;
     width: 2.25em;
     height: 2.25em;
     font-size: 2vw;
@@ -201,13 +195,13 @@ body.toggled .edit-button {
     outline: none;
 }
 
-body.toggled .reset-counter {
-    background: #2C241B;
-    color: #F5E9D4;
-}
-
-.reset-counter:hover {
-    transform: scale(1.08);
+.toggle-button svg {
+    width: 2.2rem;
+    height: 2.2rem;
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 48px;
+    max-height: 48px;
 }
 
 #edit-icon svg {
@@ -218,15 +212,6 @@ body.toggled .reset-counter {
     max-width: 48px;
     max-height: 48px;
     display: block;
-}
-
-.toggle-button svg {
-    width: 2.2rem;
-    height: 2.2rem;
-    min-width: 32px;
-    min-height: 32px;
-    max-width: 48px;
-    max-height: 48px;
 }
 
 .reset-counter svg {
@@ -352,17 +337,16 @@ body.toggled .edit-input {
 }
 
 .counter {
-    font-size: 5.12vw;
+    font-size: 3.5vw;
     font-weight: bold;
     color: #2C241B;
     background: #F5E9D4;
     border-radius: 0.2em;
-    padding: 0.08em 0.4vw;
-    line-height: 1.1;
+    padding: 0.2em 0.6em;
+    letter-spacing: 0.02em;
+    vertical-align: middle;
     display: inline-block;
-    min-width: 1.5em;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
+    line-height: 1.1;
 }
 
 body.toggled .counter {
@@ -385,6 +369,24 @@ body.toggled .counter {
     font-family: inherit;
     transition: background 0.5s, color 0.5s;
     z-index: 1001;
+    overflow: hidden;
+}
+.info-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.315;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noiseFilter)"/></svg>');
+    background-repeat: repeat;
+}
+.info-section > * {
+    position: relative;
+    z-index: 1;
 }
 
 .info-details-row {
@@ -425,34 +427,22 @@ body.toggled .info-section {
     letter-spacing: 0.01em;
     display: inline-block;
     vertical-align: middle;
+    color: #2C241B;
+    opacity: 0.9;
 }
 
 .info-highlight {
-    background-color: #F5E9D4 !important;
-    color: #2C241B !important;
-    font-weight: bold;
+    background: #2C241B;
+    color: #F5E9D4;
     border-radius: 0.2em;
-    padding: 0.1em 0.5vw;
-    display: inline-block;
-    vertical-align: middle;
-    min-width: 2.5em;
-    min-height: 1.2em;
-    text-align: center;
-    line-height: 1.1;
-    font-size: inherit;
+    padding: 0 0.3em;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.5s, color 0.5s;
 }
 body.toggled .info-highlight {
-    background-color: #2C241B !important;
-    color: #F5E9D4 !important;
-}
-
-.info-section .info-highlight {
-    background-color: #2C241B !important;
-    color: #F5E9D4 !important;
-}
-body.toggled .info-section .info-highlight {
-    background-color: #F5E9D4 !important;
-    color: #2C241B !important;
+    background: #F5E9D4;
+    color: #2C241B;
 }
 
 .info-text {
