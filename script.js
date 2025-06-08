@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Idle-Animation für Infobox (chain/price/tweeter), wenn API nicht erreichbar
+    // Idle-Animation für alle .idle-animal in der Infobox
     const idleAnimals = [
         'ʕ◴ᴥ◴ʔ',
         'ʕ◷ᴥ◷ʔ',
@@ -222,9 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'ʕ◵ᴥ◵ʔ'
     ];
     let idleIndex = 0;
-    const idleSpans = document.querySelectorAll('.info-details-row .idle-animal');
     setInterval(() => {
-        idleSpans.forEach((span, i) => {
+        document.querySelectorAll('.idle-animal').forEach((span, i) => {
             span.textContent = idleAnimals[(idleIndex + i) % idleAnimals.length];
         });
         idleIndex = (idleIndex + 1) % idleAnimals.length;
