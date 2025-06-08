@@ -113,11 +113,4 @@ document.addEventListener('DOMContentLoaded', () => {
             incrementCounter();
         }
     });
-
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === 'Return') {
-            e.preventDefault();
-            editBtn.click();
-        }
-    });
 }); 
