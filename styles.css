@@ -330,6 +330,8 @@ body.toggled .reset-counter {
     font-family: inherit;
     transition: background 0.5s, color 0.5s;
     z-index: 1001;
+    height: 15.75vw;
+    font-size: 1.1em;
 }
 
 .info-details-row {
@@ -338,7 +340,7 @@ body.toggled .reset-counter {
     align-items: center;
     justify-content: flex-start;
     gap: 2vw;
-    font-size: 0.95vw;
+    font-size: 1.045vw;
     opacity: 0.85;
     margin-top: 0.7vw;
     margin-bottom: 0.2vw;
@@ -349,7 +351,7 @@ body.toggled .reset-counter {
     margin-left: auto;
     opacity: 0.7;
     font-style: italic;
-    font-size: 0.95vw;
+    font-size: 1.045vw;
     pointer-events: none;
 }
 
@@ -363,7 +365,7 @@ body.toggled .info-section {
 }
 
 .info-headline {
-    font-size: 1.2vw;
+    font-size: 1.32vw;
     font-weight: bold;
     margin-bottom: 0.5vw;
     margin-top: 0;
@@ -401,12 +403,12 @@ body.toggled .info-section .info-highlight {
 }
 
 .info-text {
-    font-size: 1vw;
+    font-size: 1.1vw;
     margin-bottom: 0.7vw;
     margin-top: 0;
 }
 .info-details, .mint-detail, .cost-detail, .social-detail {
-    font-size: 0.95vw;
+    font-size: 1.045vw;
     opacity: 0.85;
     margin-right: 1.5vw;
 }
@@ -421,24 +423,21 @@ body.toggled .info-section .info-highlight {
 }
 @media (max-width: 900px) {
     .info-section {
-        padding: 2vw 3vw;
+        padding: 2.4vw 3.6vw;
+        height: auto;
+        font-size: 1.21em;
     }
     .info-details-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5vw;
-        font-size: 2vw;
+        font-size: 2.42vw;
     }
     .version-detail {
-        margin-left: 0;
-        margin-top: 0.5vw;
-        font-size: 2vw;
+        font-size: 2.42vw;
     }
     .info-headline, .info-highlight {
-        font-size: 2.5vw;
+        font-size: 3.025vw;
     }
     .info-text, .info-details, .mint-detail, .cost-detail, .social-detail {
-        font-size: 2vw;
+        font-size: 2.42vw;
     }
 }
 
