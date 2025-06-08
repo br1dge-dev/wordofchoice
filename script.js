@@ -72,8 +72,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     });
 
-    // Edit/Save functionality for the last word
-    editBtn.addEventListener('click', () => {
+    // Highlight-Word global laden
+    async function fetchWord() {
+        try {
+            const res = await fetch('/api/word');
+            const data = await res.json();
+            highlight.textContent = data.word || 'WORD';
+        } catch (e) {
+            highlight.textContent = 'WORD';
+        }
+    }
+    // Highlight-Word global speichern
+    async function saveWord(newWord) {
+        try {
+            await fetch('/api/word', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ word: newWord })
+            });
+        } catch (e) {}
+    }
+
+    // Edit/Save functionality für das Highlight-Word
+    editBtn.addEventListener('click', async () => {
         if (!isEditing) {
             isEditing = true;
             editIcon.innerHTML = saveSVG;
@@ -101,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 newWord = 'PIZZA';
             }
             highlight.textContent = newWord;
+            await saveWord(newWord);
             // Animation: Input ausblenden, Highlight einblenden
             input.classList.add('hide');
             setTimeout(() => {
@@ -113,4 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             incrementCounter();
         }
     });
+
+    // Beim Laden das aktuelle Highlight-Word holen
+    fetchWord();
 }); 
