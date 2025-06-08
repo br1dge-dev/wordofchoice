@@ -31,7 +31,7 @@ body::before {
     height: 100vh;
     pointer-events: none;
     z-index: 1000;
-    opacity: 0.35;
+    opacity: 0.315;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noiseFilter)"/></svg>');
     background-repeat: repeat;
 }
@@ -184,8 +184,30 @@ body.toggled .edit-button {
 }
 
 @media (max-width: 600px) {
-    .toggle-button {
-        margin-bottom: 2vw;
+    .text, .single-line, .headline-word, .toggle-text, .counter {
+        font-size: 2.2rem;
+    }
+    .highlight {
+        font-size: 2.5rem;
+    }
+    .info-section {
+        font-size: 1.3rem;
+        padding: 2.5vw 4vw;
+    }
+    .toggle-button, .edit-button, .reset-counter {
+        font-size: 2rem;
+        min-width: 48px;
+        min-height: 48px;
+        max-width: 80px;
+        max-height: 80px;
+    }
+    #edit-icon svg, .toggle-button svg {
+        width: 2.2rem;
+        height: 2.2rem;
+        min-width: 32px;
+        min-height: 32px;
+        max-width: 48px;
+        max-height: 48px;
     }
 }
 
@@ -330,8 +352,6 @@ body.toggled .reset-counter {
     font-family: inherit;
     transition: background 0.5s, color 0.5s;
     z-index: 1001;
-    height: 15.75vw;
-    font-size: 1.1em;
 }
 
 .info-details-row {
@@ -423,11 +443,10 @@ body.toggled .info-section .info-highlight {
 }
 @media (max-width: 900px) {
     html {
-        font-size: 120%; /* global +20% */
+        font-size: 120%;
     }
     .info-section {
         padding: 2.4vw 3.6vw;
-        height: auto;
         font-size: 1.21em;
     }
     .info-details-row {
@@ -443,7 +462,10 @@ body.toggled .info-section .info-highlight {
         font-size: 2.42vw;
     }
     .toggle-button, .edit-button, .reset-counter {
-        font-size: 4.2vw; /* +20% nur für das Icon/Text, nicht für die Button-Größe */
+        font-size: 4.2vw;
+    }
+    .counter {
+        font-size: 6.4vw;
     }
 }
 
