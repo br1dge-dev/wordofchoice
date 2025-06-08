@@ -25,17 +25,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const editSVG = `<svg id=\"edit-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><path d=\"M20 12H7M11 8l-4 4 4 4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
     const saveSVG = `<svg id=\"save-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><rect x=\"8\" y=\"16\" width=\"8\" height=\"2\" fill=\"currentColor\"/><rect x=\"8\" y=\"8\" width=\"8\" height=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>`;
 
-    // Counter global von API laden
+    // ===================== LOKALMODUS =====================
+    // Alle API-Calls gehen direkt an Supabase, nicht an /api/word oder /api/counter
+    const SUPABASE_URL = 'https://kuatsdzlonpjpddcgvnm.supabase.co';
+    const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1YXRzZHpsb25wanBkZGNndm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzIyMDIsImV4cCI6MjA2NDkwODIwMn0.A-LrULN8IXTA1HMz0lD-f8-Dpu7fUnJckRsi26uU094';
+    const TABLE = 'choices';
+
     async function fetchCounter() {
         try {
-            const res = await fetch('/api/counter');
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.counter`, {
+                headers: {
+                    apikey: SUPABASE_API_KEY,
+                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                },
+            });
             const data = await res.json();
-            count = data.count;
+            count = data && data[0] ? parseInt(data[0].value, 10) : 1;
             clearInterval(loadingInterval);
             counter.textContent = `#${count}`;
         } catch (e) {
             clearInterval(loadingInterval);
-            // Tier-Animation als Fallback weiterlaufen lassen
             loadingInterval = setInterval(() => {
                 counter.textContent = '#' + animalFrames[animalIndex];
                 animalIndex = (animalIndex + 1) % animalFrames.length;
@@ -44,24 +53,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     async function incrementCounter() {
         try {
-            const res = await fetch('/api/counter', { method: 'POST' });
-            const data = await res.json();
-            count = data.count;
+            // Counter holen
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.counter`, {
+                headers: {
+                    apikey: SUPABASE_API_KEY,
+                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                },
+            });
+            let data = await res.json();
+            let newCount = data && data[0] ? parseInt(data[0].value, 10) + 1 : 1;
+            // Counter setzen
+            await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?key=eq.counter`, {
+                method: 'PATCH',
+                headers: {
+                    apikey: SUPABASE_API_KEY,
+                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                    'Content-Type': 'application/json',
+                    Prefer: 'return=representation',
+                },
+                body: JSON.stringify({ value: String(newCount) }),
+            });
+            count = newCount;
             counter.textContent = `#${count}`;
         } catch (e) {
             counter.textContent = '#?';
         }
     }
-    async function resetCounter() {
+    async function fetchWord() {
+        if (wordInterval) clearInterval(wordInterval);
+        let wordIndex = 0;
+        const wordFrames = [
+            'ʕ◴ᴥ◴ʔ',
+            'ʕ◷ᴥ◷ʔ',
+            'ʕ◶ᴥ◶ʔ',
+            'ʕ◵ᴥ◵ʔ'
+        ];
+        highlight.textContent = wordFrames[wordIndex];
+        wordInterval = setInterval(() => {
+            highlight.textContent = wordFrames[wordIndex];
+            wordIndex = (wordIndex + 1) % wordFrames.length;
+        }, 400);
         try {
-            const res = await fetch('/api/counter', { method: 'DELETE' });
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.word`, {
+                headers: {
+                    apikey: SUPABASE_API_KEY,
+                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                },
+            });
             const data = await res.json();
-            count = data.count;
-            counter.textContent = `#${count}`;
+            clearInterval(wordInterval);
+            wordInterval = null;
+            highlight.textContent = data && data[0] ? data[0].value : 'WORD';
         } catch (e) {
-            counter.textContent = '#?';
+            // Animation läuft weiter
         }
     }
+    async function saveWord(newWord) {
+        try {
+            await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+                method: 'POST',
+                headers: {
+                    apikey: SUPABASE_API_KEY,
+                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                    'Content-Type': 'application/json',
+                    Prefer: 'return=representation',
+                },
+                body: JSON.stringify({ key: 'word', value: newWord }),
+            });
+        } catch (e) {}
+    }
+    // ===================== ENDE LOKALMODUS =====================
+
     fetchCounter();
 
     // Toggle dark/light mode
@@ -82,44 +144,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Highlight-Word global laden
     let wordInterval = null;
-    async function fetchWord() {
-        if (wordInterval) clearInterval(wordInterval);
-        let wordIndex = 0;
-        const wordFrames = [
-            'ʕ◴ᴥ◴ʔ',
-            'ʕ◷ᴥ◷ʔ',
-            'ʕ◶ᴥ◶ʔ',
-            'ʕ◵ᴥ◵ʔ'
-        ];
-        highlight.textContent = wordFrames[wordIndex];
-        wordInterval = setInterval(() => {
-            highlight.textContent = wordFrames[wordIndex];
-            wordIndex = (wordIndex + 1) % wordFrames.length;
-        }, 400);
-        try {
-            const res = await fetch('/api/word');
-            const data = await res.json();
-            clearInterval(wordInterval);
-            wordInterval = null;
-            highlight.textContent = data.word || 'WORD';
-        } catch (e) {
-            // Animation läuft weiter, bis fetchWord erneut erfolgreich ist
+    fetchWord();
+
+    // Mint-Button Funktionalität
+    const mintBtn = document.querySelector('.mint-btn');
+    const mintBar = document.querySelector('.mint-bar');
+    let mintInfoBox = null;
+
+    mintBtn.addEventListener('click', async () => {
+        if (!mintInfoBox) {
+            mintInfoBox = document.createElement('div');
+            mintInfoBox.className = 'mint-info-box';
+            mintInfoBox.innerHTML = '<div>word</div><div>is</div><div><span class="highlight info-highlight">GONE</span></div>';
+            mintBar.appendChild(mintInfoBox);
+            mintBtn.classList.add('mint-strikethrough');
         }
-    }
-    // Highlight-Word global speichern
-    async function saveWord(newWord) {
-        try {
-            await fetch('/api/word', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ word: newWord })
-            });
-        } catch (e) {}
+    });
+
+    // Entferne Infobox und Strikethrough bei Editieren oder Speichern
+    function clearMintBox() {
+        if (mintInfoBox) {
+            mintBar.removeChild(mintInfoBox);
+            mintInfoBox = null;
+        }
+        mintBtn.classList.remove('mint-strikethrough');
     }
 
     // Edit/Save functionality für das Highlight-Word
     editBtn.addEventListener('click', async () => {
         if (!isEditing) {
+            clearMintBox();
             isEditing = true;
             editIcon.innerHTML = saveSVG;
             // Input-Feld erzeugen
@@ -156,12 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Icon zurück zu "Edit"
             editIcon.innerHTML = editSVG;
             isEditing = false;
-            incrementCounter();
+            clearMintBox();
         }
     });
-
-    // Beim Laden das aktuelle Highlight-Word holen
-    fetchWord();
 
     // Idle-Animation für Infobox (chain/price/tweeter), wenn API nicht erreichbar
     const idleAnimals = [
