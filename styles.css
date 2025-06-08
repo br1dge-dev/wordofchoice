@@ -15,6 +15,8 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 body.toggled {
@@ -34,6 +36,14 @@ body::before {
     opacity: 0.315;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noiseFilter)"/></svg>');
     background-repeat: repeat;
+}
+
+.page-container, .container {
+    padding-left: 4vw;
+    padding-right: 4vw;
+    overflow-x: hidden;
+    max-width: 100vw;
+    box-sizing: border-box;
 }
 
 .container {
