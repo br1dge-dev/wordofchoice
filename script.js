@@ -162,4 +162,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Beim Laden das aktuelle Highlight-Word holen
     fetchWord();
+
+    // Idle-Animation für Infobox (chain/price/tweeter), wenn API nicht erreichbar
+    const idleAnimals = [
+        'ʕ◴ᴥ◴ʔ',
+        'ʕ◷ᴥ◷ʔ',
+        'ʕ◶ᴥ◶ʔ',
+        'ʕ◵ᴥ◵ʔ'
+    ];
+    let idleIndex = 0;
+    const idleSpans = document.querySelectorAll('.info-details-row .idle-animal');
+    setInterval(() => {
+        idleSpans.forEach((span, i) => {
+            span.textContent = idleAnimals[(idleIndex + i) % idleAnimals.length];
+        });
+        idleIndex = (idleIndex + 1) % idleAnimals.length;
+    }, 400);
 }); 

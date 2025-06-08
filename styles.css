@@ -580,4 +580,33 @@ body.toggled .mint-price {
     line-height: 1.1;
     letter-spacing: 0.01em;
     display: inline-block;
+}
+
+.headline-word {
+    font-size: 6.4vw;
+    font-weight: bold;
+    line-height: 1.18;
+    white-space: nowrap;
+    transition: color 0.5s;
+    display: inline-block;
+}
+
+/* Idle-Animation für Tier-ASCII */
+.idle-animal {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 0.3em;
+    font-size: 1.1em;
+}
+
+.info-section .headline-word {
+    font-size: 0.85em;
+    font-weight: bold;
+    color: #2C241B;
+    background: none;
+    transition: none;
+    vertical-align: middle;
+}
+body.toggled .info-section .headline-word {
+    color: #F5E9D4;
 } 
