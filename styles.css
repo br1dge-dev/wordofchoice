@@ -422,6 +422,9 @@ body.toggled .info-section .info-highlight {
     opacity: 1;
 }
 @media (max-width: 900px) {
+    html {
+        font-size: 120%; /* global +20% */
+    }
     .info-section {
         padding: 2.4vw 3.6vw;
         height: auto;
@@ -438,6 +441,9 @@ body.toggled .info-section .info-highlight {
     }
     .info-text, .info-details, .mint-detail, .cost-detail, .social-detail {
         font-size: 2.42vw;
+    }
+    .toggle-button, .edit-button, .reset-counter {
+        font-size: 4.2vw; /* +20% nur für das Icon/Text, nicht für die Button-Größe */
     }
 }
 
