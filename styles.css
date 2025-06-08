@@ -38,23 +38,22 @@ body::before {
     background-repeat: repeat;
 }
 
-.page-container, .container {
-    padding-left: 4vw;
-    padding-right: 4vw;
+.page-container {
     overflow-x: hidden;
     max-width: 100vw;
     box-sizing: border-box;
 }
 
 .container {
-    text-align: center;
-    width: 100vw;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 4vw;
+    padding-right: 4vw;
+    overflow-x: hidden;
     max-width: 100vw;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+    box-sizing: border-box;
+    margin-top: -4vw;
+    padding-top: 4vw;
 }
 
 .sticky-toggle-wrapper {
@@ -107,29 +106,38 @@ body.toggled .highlight {
     position: relative;
 }
 
+.headline-flex {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.5vw;
+    flex-wrap: wrap;
+    margin-bottom: 0.5vw;
+}
+
 .toggle-word-wrapper {
-    display: inline-block;
-    position: relative;
-    margin-right: 0.5vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 0 0.5vw;
 }
 
 .toggle-button {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    transform: translate(-50%, -110%);
-    z-index: 2;
+    position: static;
+    transform: none;
     margin: 0;
     background: #F5E9D4;
     color: #2C241B;
     border: none;
     border-radius: 0.2em;
-    width: 6.4vw;
-    height: 6.4vw;
-    min-width: 40px;
-    min-height: 40px;
-    max-width: 90px;
-    max-height: 90px;
+    width: 5.76vw;
+    height: 5.76vw;
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 81px;
+    max-height: 81px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -138,10 +146,6 @@ body.toggled .highlight {
     box-shadow: 0 2px 8px rgba(44,36,27,0.08);
     transition: background 0.3s, color 0.3s, transform 0.2s;
     outline: none;
-}
-
-.toggle-button:hover {
-    transform: translate(-50%, -110%) scale(1.08);
 }
 
 body.toggled .toggle-button {
@@ -154,12 +158,12 @@ body.toggled .toggle-button {
     color: #2C241B;
     border: none;
     border-radius: 0.2em;
-    width: 6.4vw;
-    height: 6.4vw;
-    min-width: 40px;
-    min-height: 40px;
-    max-width: 90px;
-    max-height: 90px;
+    width: 5.76vw;
+    height: 5.76vw;
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 81px;
+    max-height: 81px;
     margin-left: 0.5vw;
     display: inline-flex;
     align-items: center;
@@ -177,6 +181,61 @@ body.toggled .toggle-button {
 body.toggled .edit-button {
     background: #2C241B;
     color: #F5E9D4;
+}
+
+.reset-counter {
+    background: #F5E9D4;
+    color: #2C241B;
+    border: none;
+    border-radius: 0.2em;
+    width: 2.25em;
+    height: 2.25em;
+    font-size: 2vw;
+    margin-left: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    outline: none;
+}
+
+body.toggled .reset-counter {
+    background: #2C241B;
+    color: #F5E9D4;
+}
+
+.reset-counter:hover {
+    transform: scale(1.08);
+}
+
+#edit-icon svg {
+    width: 3.5vw;
+    height: 3.5vw;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 48px;
+    max-height: 48px;
+    display: block;
+}
+
+.toggle-button svg {
+    width: 2.2rem;
+    height: 2.2rem;
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 48px;
+    max-height: 48px;
+}
+
+.reset-counter svg {
+    width: 2.2rem;
+    height: 2.2rem;
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 48px;
+    max-height: 48px;
 }
 
 .headline-row {
@@ -212,7 +271,7 @@ body.toggled .edit-button {
         max-width: 80px;
         max-height: 80px;
     }
-    #edit-icon svg, .toggle-button svg {
+    #edit-icon svg, .toggle-button svg, .reset-counter svg {
         width: 2.2rem;
         height: 2.2rem;
         min-width: 32px;
@@ -282,16 +341,6 @@ body.toggled .edit-input {
     transition: color 0.5s, text-decoration 0.5s, opacity 0.5s;
 }
 
-#edit-icon svg {
-    width: 3.5vw;
-    height: 3.5vw;
-    min-width: 24px;
-    min-height: 24px;
-    max-width: 48px;
-    max-height: 48px;
-    display: block;
-}
-
 .counter-bar {
     position: absolute;
     top: 2vw;
@@ -303,12 +352,12 @@ body.toggled .edit-input {
 }
 
 .counter {
-    font-size: 6.4vw;
+    font-size: 5.12vw;
     font-weight: bold;
     color: #2C241B;
     background: #F5E9D4;
     border-radius: 0.2em;
-    padding: 0.1em 0.5vw;
+    padding: 0.08em 0.4vw;
     line-height: 1.1;
     display: inline-block;
     min-width: 1.5em;
@@ -319,33 +368,6 @@ body.toggled .edit-input {
 body.toggled .counter {
     color: #F5E9D4;
     background: #2C241B;
-}
-
-.reset-counter {
-    background: #F5E9D4;
-    color: #2C241B;
-    border: none;
-    border-radius: 0.2em;
-    width: 2.5em;
-    height: 2.5em;
-    font-size: 2vw;
-    margin-left: 0.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
-    transition: background 0.3s, color 0.3s, transform 0.2s;
-    outline: none;
-}
-
-body.toggled .reset-counter {
-    background: #2C241B;
-    color: #F5E9D4;
-}
-
-.reset-counter:hover {
-    transform: scale(1.08);
 }
 
 .info-section {
@@ -497,4 +519,10 @@ body.toggled .info-section .info-highlight {
 body.toggled .headline-highlight {
     background-color: #F5E9D4;
     color: #2C241B;
+}
+
+.single-line {
+    display: block;
+    text-align: center;
+    margin-top: 0;
 } 
