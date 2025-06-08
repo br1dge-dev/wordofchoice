@@ -515,4 +515,60 @@ body.toggled .headline-highlight {
     display: block;
     text-align: center;
     margin-top: 0;
+}
+
+.mint-bar {
+    position: absolute;
+    top: 2vw;
+    right: 2vw;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    z-index: 100;
+}
+.mint-btn {
+    background: #F5E9D4;
+    color: #2C241B;
+    border-radius: 0.2em;
+    font-size: 3.5vw;
+    font-weight: bold;
+    padding: 0.2em 0.6em;
+    min-width: 2.5em;
+    min-height: 1.2em;
+    text-align: center;
+    line-height: 1.1;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
+    margin-bottom: 0.2em;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+}
+body.toggled .mint-btn {
+    background: #2C241B;
+    color: #F5E9D4;
+}
+.mint-btn:hover {
+    filter: brightness(0.97) contrast(1.05);
+    transform: scale(1.04);
+}
+.mint-price {
+    background: #F5E9D4;
+    color: #2C241B;
+    font-size: 1em;
+    font-weight: bold;
+    padding: 0.1em 0.3em 0 0.3em;
+    border-radius: 0.2em;
+    margin-top: 0.1em;
+    text-align: right;
+    opacity: 0.85;
+    letter-spacing: 0.01em;
+    display: inline-block;
+    min-width: 2.5em;
+    min-height: 1.2em;
+    line-height: 1.1;
+}
+body.toggled .mint-price {
+    background: #2C241B;
+    color: #F5E9D4;
 } 
