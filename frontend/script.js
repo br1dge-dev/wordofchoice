@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isEditing = false;
     let input;
     let count;
-    // Animierter Platzhalter für Counter (Tier-Emoji)
+    // Animated placeholder for counter (animal emoji)
     const animalFrames = [
         'ʕ◴ᴥ◴ʔ',
         'ʕ◷ᴥ◷ʔ',
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Toggle dark/light mode
     toggleButton.addEventListener('click', () => {
-        // Strikethrough-Animation für das schwindende Wort
+        // Strikethrough animation for the fading word
         toggleText.classList.add('strikethrough');
         setTimeout(() => {
             body.classList.toggle('toggled');
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mintBtn.addEventListener('click', async () => {
         const currentWord = highlight.textContent;
         if (!mintClicked || lastMintedWord !== currentWord) {
-            // Erster Klick oder Wort wurde geändert: Counter hochzählen, kein Infobox
+            // First click or word changed: Increment counter, no infobox
             await incrementCounter();
             mintClicked = true;
             lastMintedWord = currentWord;
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mintBtn.classList.remove('mint-strikethrough');
             }
         } else {
-            // Zweiter Klick (ohne Wortänderung): Infobox anzeigen
+            // Second click (without word change): Show infobox
             if (!mintInfoBox) {
                 mintInfoBox = document.createElement('div');
                 mintInfoBox.className = 'mint-info-box';
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Edit/Save functionality für das Highlight-Word
+    // Edit/Save functionality for the highlight word
     editBtn.addEventListener('click', async () => {
         if (!isEditing) {
             isEditing = true;
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             highlight.textContent = newWord;
             await saveWord(newWord);
-            // Mint-Button und Infobox zurücksetzen
+            // Reset mint button and infobox
             mintClicked = false;
             lastMintedWord = null;
             if (mintInfoBox) {
@@ -246,13 +246,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (input && input.parentNode) input.parentNode.removeChild(input);
                 highlight.style.display = '';
             }, 300);
-            // Icon zurück zu "Edit"
+            // Icon back to "Edit"
             editIcon.innerHTML = editSVG;
             isEditing = false;
         }
     });
 
-    // Idle-Animation für alle .idle-animal in der Infobox
+    // Idle animation for all .idle-animal in the infobox
     const idleAnimals = [
         'ʕ◴ᴥ◴ʔ',
         'ʕ◷ᴥ◷ʔ',
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         idleIndex = (idleIndex + 1) % idleAnimals.length;
     }, 400);
 
-    // --- Subtiler, automatischer Wiggle-Loop für Toggle- und Edit-Button ---
+    // --- Subtle, automatic wiggle loop for toggle and edit buttons ---
     function triggerWiggle(element) {
         element.classList.remove('wiggle');
         void element.offsetWidth;
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 syncHighlightWord(newWord);
                 await saveWord(newWord);
-                // Mint-Button und Infobox zurücksetzen (Mobile)
+                // Reset mint button and infobox (Mobile)
                 mintClicked = false;
                 lastMintedWord = null;
                 if (mintInfoBox) {
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (inputMobile && inputMobile.parentNode) inputMobile.parentNode.removeChild(inputMobile);
                     highlightMobile.style.display = '';
                 }, 300);
-                // Icon zurück zu "Edit"
+                // Icon back to "Edit"
                 editIconMobile.innerHTML = editSVG;
                 isEditingMobile = false;
             }

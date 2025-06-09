@@ -1,4 +1,4 @@
-// Neue API-Route für das globale Highlight-Word
+// New API route for the global highlight word
 const SUPABASE_URL = 'https://kuatsdzlonpjpddcgvnm.supabase.co';
 const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1YXRzZHpsb25wanBkZGNndm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzIyMDIsImV4cCI6MjA2NDkwODIwMn0.A-LrULN8IXTA1HMz0lD-f8-Dpu7fUnJckRsi26uU094';
 const TABLE = 'choices';
