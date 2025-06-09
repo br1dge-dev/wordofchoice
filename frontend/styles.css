@@ -388,8 +388,9 @@ body.toggled .edit-input {
     top: 2vw;
     left: 2vw;
     display: flex;
-    align-items: center;
-    gap: 0.5vw;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2em;
     z-index: 100;
 }
 
@@ -582,7 +583,7 @@ body.toggled .headline-highlight {
     flex-direction: column;
     align-items: flex-end;
     z-index: 100;
-    gap: 0.5em;
+    gap: 0.2em;
 }
 .mint-btn {
     background: #F5E9D4;
@@ -617,20 +618,20 @@ body.toggled .mint-btn {
     font-weight: bold;
     padding: 0.1em 0.3em 0 0.3em;
     border-radius: 0.2em;
-    margin-top: 0.1em;
+    margin-top: 0.2em;
     text-align: right;
-    opacity: 0.85;
     letter-spacing: 0.01em;
     display: inline-block;
     min-width: 2.5em;
     min-height: 1.2em;
     line-height: 1.1;
+    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
+    opacity: 1;
 }
 body.toggled .mint-price {
     background: #2C241B;
     color: #F5E9D4;
 }
-
 .superscript {
     position: absolute;
     top: 0.18em;
@@ -757,6 +758,8 @@ body.toggled .mint-info-box {
     vertical-align: middle;
     min-width: 5.5em;
     text-align: left;
+    color: inherit;
+    opacity: 1 !important;
 }
 @media (max-width: 600px) {
     .cost-detail, .price-detail, .social-detail {
