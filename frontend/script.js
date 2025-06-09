@@ -228,18 +228,34 @@ document.addEventListener('DOMContentLoaded', () => {
             // Speichern
             let newWord = input.value.trim().toUpperCase();
             if (newWord.length === 0) {
-                newWord = 'PIZZA';
+                // Leerer Input: ASCII-Gesicht, Mint deaktivieren, Warnung anzeigen
+                highlight.textContent = 'ʕ◔ϖ◔ʔ';
+                mintBtn.disabled = true;
+                mintBtn.classList.add('mint-disabled');
+                // Infobox anzeigen
+                if (mintInfoBox) {
+                    mintBar.removeChild(mintInfoBox);
+                    mintInfoBox = null;
+                }
+                mintInfoBox = document.createElement('div');
+                mintInfoBox.className = 'mint-info-box';
+                mintInfoBox.innerHTML = '<div>word</div><div>is</div><div><span class="highlight info-highlight">INVALID</span></div>';
+                mintBar.appendChild(mintInfoBox);
+                mintBtn.classList.add('mint-strikethrough');
+            } else {
+                highlight.textContent = newWord;
+                await saveWord(newWord);
+                // Reset mint button and infobox
+                mintClicked = false;
+                lastMintedWord = null;
+                if (mintInfoBox) {
+                    mintBar.removeChild(mintInfoBox);
+                    mintInfoBox = null;
+                }
+                mintBtn.classList.remove('mint-strikethrough');
+                mintBtn.disabled = false;
+                mintBtn.classList.remove('mint-disabled');
             }
-            highlight.textContent = newWord;
-            await saveWord(newWord);
-            // Reset mint button and infobox
-            mintClicked = false;
-            lastMintedWord = null;
-            if (mintInfoBox) {
-                mintBar.removeChild(mintInfoBox);
-                mintInfoBox = null;
-            }
-            mintBtn.classList.remove('mint-strikethrough');
             // Animation: Input ausblenden, Highlight einblenden
             input.classList.add('hide');
             setTimeout(() => {
