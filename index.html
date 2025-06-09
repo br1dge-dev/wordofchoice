@@ -36,7 +36,7 @@
         </div>
         <div class="container">
             <h1 class="text">
-                <div class="headline-flex">
+                <div class="headline-flex desktop-headline">
                     <span class="headline-word">The</span>
                     <button class="toggle-button"><span>⟳</span></button>
                     <span class="toggle-word-wrapper">
@@ -45,7 +45,7 @@
                     <span class="headline-word">thing</span>
                     <span class="headline-word">about</span>
                 </div>
-                <span class="single-line">
+                <span class="single-line desktop-headline">
                     <span style="text-decoration: underline;">life</span> is <span class="highlight" id="highlight-word">WORD</span>
                     <button class="edit-button" id="edit-btn" aria-label="Bearbeiten">
                         <span id="edit-icon">
@@ -53,6 +53,31 @@
                         </span>
                     </button>
                 </span>
+                <!-- Mobile Headline (vierzeilig) -->
+                <div class="mobile-headline" style="display:none;">
+                    <div class="mobile-row">
+                        <span class="headline-word">The</span>
+                        <button class="toggle-button"><span>⟳</span></button>
+                        <span class="toggle-word-wrapper">
+                            <span class="toggle-text">worst</span>
+                        </span>
+                    </div>
+                    <div class="mobile-row">
+                        <span class="headline-word">thing</span>
+                        <span class="headline-word">about</span>
+                    </div>
+                    <div class="mobile-row">
+                        <span style="text-decoration: underline;">life</span> is
+                    </div>
+                    <div class="mobile-row">
+                        <span class="highlight" id="highlight-word-mobile">WORD</span>
+                        <button class="edit-button" id="edit-btn-mobile" aria-label="Bearbeiten">
+                            <span id="edit-icon-mobile">
+                                <svg id="edit-svg-mobile" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d="M20 12H7M11 8l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
             </h1>
         </div>
     </div>

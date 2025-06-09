@@ -782,4 +782,42 @@ body.toggled .mint-info-box {
 }
 .toggle-button.wiggle, .edit-button.wiggle {
   animation: subtle-wiggle 0.7s cubic-bezier(0.4,0.2,0.2,1) 1;
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .desktop-headline { display: none !important; }
+  .mobile-headline { display: block !important; margin: 0 auto; width: 100%; }
+  .mobile-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18em;
+    font-size: 2.7rem;
+    font-weight: bold;
+    margin-bottom: 0.05em;
+    text-align: center;
+  }
+  .mobile-row .headline-word, .mobile-row .toggle-text, .mobile-row .highlight {
+    font-size: 2.7rem;
+    font-weight: bold;
+    line-height: 1.13;
+    white-space: nowrap;
+  }
+  .mobile-row .highlight {
+    padding: 0.08em 0.3em;
+    border-radius: 0.2em;
+    min-width: 2.5em;
+    min-height: 1.2em;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .mobile-row button.toggle-button, .mobile-row button.edit-button {
+    margin: 0 0.12em;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 60px;
+    max-height: 60px;
+    font-size: 1.5rem;
+  }
 } 

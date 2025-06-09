@@ -247,4 +247,70 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2250);
     }
     setTimeout(startWiggleLoop, 1000); // Nach 1s Page-Load starten
+
+    // --- Mobile Headline Logik: Edit und Highlight synchronisieren ---
+    const highlightMobile = document.getElementById('highlight-word-mobile');
+    const editBtnMobile = document.getElementById('edit-btn-mobile');
+    const editIconMobile = document.getElementById('edit-icon-mobile');
+    let isEditingMobile = false;
+    let inputMobile;
+
+    function syncHighlightWord(word) {
+        if (highlight) highlight.textContent = word;
+        if (highlightMobile) highlightMobile.textContent = word;
+    }
+
+    if (editBtnMobile) {
+        editBtnMobile.addEventListener('click', async () => {
+            if (!isEditingMobile) {
+                clearMintBox();
+                isEditingMobile = true;
+                editIconMobile.innerHTML = saveSVG;
+                // Input-Feld erzeugen
+                inputMobile = document.createElement('input');
+                inputMobile.type = 'text';
+                inputMobile.maxLength = 10;
+                inputMobile.className = 'edit-input';
+                inputMobile.value = '';
+                inputMobile.placeholder = 'insert word';
+                inputMobile.setAttribute('aria-label', 'Wort bearbeiten');
+                inputMobile.style.textTransform = 'uppercase';
+                // Animation: Highlight ausblenden, Input einblenden
+                highlightMobile.style.display = 'none';
+                highlightMobile.parentNode.insertBefore(inputMobile, editBtnMobile);
+                inputMobile.focus();
+                // Validierung: Nur Buchstaben
+                inputMobile.addEventListener('input', () => {
+                    inputMobile.value = inputMobile.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
+                });
+            } else {
+                // Speichern
+                let newWord = inputMobile.value.trim().toUpperCase();
+                if (newWord.length === 0) {
+                    newWord = 'PIZZA';
+                }
+                syncHighlightWord(newWord);
+                await saveWord(newWord);
+                // Animation: Input ausblenden, Highlight einblenden
+                inputMobile.classList.add('hide');
+                setTimeout(() => {
+                    if (inputMobile && inputMobile.parentNode) inputMobile.parentNode.removeChild(inputMobile);
+                    highlightMobile.style.display = '';
+                }, 300);
+                // Icon zurück zu "Edit"
+                editIconMobile.innerHTML = editSVG;
+                isEditingMobile = false;
+                clearMintBox();
+            }
+        });
+    }
+
+    // Synchronisiere Highlight-Word initial
+    if (highlight && highlightMobile) {
+        highlightMobile.textContent = highlight.textContent;
+    }
+
+    // --- Supabase-API-Calls wieder aktivieren, Tieranimationen nur als Platzhalter beim Laden ---
+    fetchCounter();
+    fetchWord();
 }); 
