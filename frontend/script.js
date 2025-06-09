@@ -224,48 +224,54 @@ document.addEventListener('DOMContentLoaded', () => {
             input.addEventListener('input', () => {
                 input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
             });
+            // Speichern bei Enter oder Blur
+            input.addEventListener('keydown', async (e) => {
+                if (e.key === 'Enter') {
+                    await saveEditInput();
+                }
+            });
+            input.addEventListener('blur', async () => {
+                await saveEditInput();
+            });
         }
-        // Speichern
-        let newWord = input.value.trim().toUpperCase();
-        if (newWord.length === 0) {
-            // Leerer Input: ASCII-Gesicht, Mint deaktivieren, Warnung anzeigen
-            highlight.style.display = '';
-            highlight.textContent = 'ʕ◔ϖ◔ʔ';
-            mintBtn.disabled = true;
-            mintBtn.classList.add('mint-disabled');
-            // Infobox anzeigen
-            if (mintInfoBox) {
-                mintBar.removeChild(mintInfoBox);
-                mintInfoBox = null;
+        async function saveEditInput() {
+            let newWord = input.value.trim().toUpperCase();
+            if (newWord.length === 0) {
+                highlight.style.display = '';
+                highlight.textContent = 'ʕ◔ϖ◔ʔ';
+                mintBtn.disabled = true;
+                mintBtn.classList.add('mint-disabled');
+                if (mintInfoBox) {
+                    mintBar.removeChild(mintInfoBox);
+                    mintInfoBox = null;
+                }
+                mintInfoBox = document.createElement('div');
+                mintInfoBox.className = 'mint-info-box';
+                mintInfoBox.innerHTML = '<div>word</div><div>is</div><div><span class="highlight info-highlight">INVALID</span></div>';
+                mintBar.appendChild(mintInfoBox);
+                mintBtn.classList.add('mint-strikethrough');
+            } else {
+                highlight.textContent = newWord;
+                await saveWord(newWord);
+                mintClicked = false;
+                lastMintedWord = null;
+                if (mintInfoBox) {
+                    mintBar.removeChild(mintInfoBox);
+                    mintInfoBox = null;
+                }
+                mintBtn.classList.remove('mint-strikethrough');
+                mintBtn.disabled = false;
+                mintBtn.classList.remove('mint-disabled');
             }
-            mintInfoBox = document.createElement('div');
-            mintInfoBox.className = 'mint-info-box';
-            mintInfoBox.innerHTML = '<div>word</div><div>is</div><div><span class="highlight info-highlight">INVALID</span></div>';
-            mintBar.appendChild(mintInfoBox);
-            mintBtn.classList.add('mint-strikethrough');
-        } else {
-            highlight.textContent = newWord;
-            await saveWord(newWord);
-            // Reset mint button and infobox
-            mintClicked = false;
-            lastMintedWord = null;
-            if (mintInfoBox) {
-                mintBar.removeChild(mintInfoBox);
-                mintInfoBox = null;
-            }
-            mintBtn.classList.remove('mint-strikethrough');
-            mintBtn.disabled = false;
-            mintBtn.classList.remove('mint-disabled');
+            input.classList.add('hide');
+            input.addEventListener('transitionend', function handler() {
+                if (input && input.parentNode) input.parentNode.removeChild(input);
+                highlight.style.display = '';
+                input.removeEventListener('transitionend', handler);
+            });
+            editIcon.innerHTML = editSVG;
+            isEditing = false;
         }
-        // Animation: Input ausblenden, Highlight einblenden
-        input.classList.add('hide');
-        setTimeout(() => {
-            if (input && input.parentNode) input.parentNode.removeChild(input);
-            highlight.style.display = '';
-        }, 300);
-        // Icon back to "Edit"
-        editIcon.innerHTML = editSVG;
-        isEditing = false;
     });
 
     // Idle animation for all .idle-animal in the infobox
@@ -369,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Speichern
                 let newWord = inputMobile.value.trim().toUpperCase();
                 if (newWord.length === 0) {
-                    newWord = 'PIZZA';
+                    newWord = 'ʕ◔ϖ◔ʔ';
                 }
                 syncHighlightWord(newWord);
                 await saveWord(newWord);
@@ -468,7 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         chainId = BASE_SEPOLIA_PARAMS.chainId;
                     } catch (switchError) {
-                        // Falls das Netzwerk nicht existiert, versuche es hinzuzufügen
                         if (switchError.code === 4902) {
                             try {
                                 await window.ethereum.request({
@@ -498,8 +503,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
                 window.ethereum.on('chainChanged', handleChainChanged);
             } catch (error) {
-                console.error('Error connecting to wallet:', error);
-                walletStatus.textContent = 'Please install an EVM-compatible wallet!';
+                if (error && (error.code === 4001 || error.message?.includes('User rejected'))) {
+                    walletStatus.textContent = 'Connection cancelled. Please try again.';
+                } else {
+                    console.error('Error connecting to wallet:', error);
+                    walletStatus.textContent = 'Please install an EVM-compatible wallet!';
+                }
             }
         } else {
             walletStatus.textContent = 'Please install an EVM-compatible wallet!';
@@ -533,4 +542,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     connectWalletBtn.addEventListener('click', connectWallet);
+
+    async function checkInitialWalletConnection() {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (accounts.length > 0 && chainId === BASE_SEPOLIA_PARAMS.chainId) {
+                    isConnected = true;
+                    currentAccount = accounts[0];
+                    mintBtn.textContent = 'MINT';
+                } else {
+                    isConnected = false;
+                    currentAccount = null;
+                    mintBtn.textContent = 'CONNECT';
+                }
+            } catch (e) {
+                // Ignorieren
+            }
+        }
+    }
+
+    checkInitialWalletConnection();
 }); 
