@@ -89,8 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'ʕ◵ᴥ◵ʔ'
         ];
         highlight.textContent = wordFrames[wordIndex];
+        if (highlightMobile) highlightMobile.textContent = wordFrames[wordIndex];
         wordInterval = setInterval(() => {
             highlight.textContent = wordFrames[wordIndex];
+            if (highlightMobile) highlightMobile.textContent = wordFrames[wordIndex];
             wordIndex = (wordIndex + 1) % wordFrames.length;
         }, 400);
         try {
@@ -103,22 +105,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             clearInterval(wordInterval);
             wordInterval = null;
-            highlight.textContent = data && data[0] ? data[0].value : 'WORD';
+            const loadedWord = data && data[0] ? data[0].value : 'WORD';
+            highlight.textContent = loadedWord;
+            if (highlightMobile) highlightMobile.textContent = loadedWord;
         } catch (e) {
             // Animation läuft weiter
         }
     }
     async function saveWord(newWord) {
         try {
-            await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
-                method: 'POST',
+            await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?key=eq.word`, {
+                method: 'PATCH',
                 headers: {
                     apikey: SUPABASE_API_KEY,
                     Authorization: `Bearer ${SUPABASE_API_KEY}`,
                     'Content-Type': 'application/json',
                     Prefer: 'return=representation',
                 },
-                body: JSON.stringify({ key: 'word', value: newWord }),
+                body: JSON.stringify({ value: newWord }),
             });
         } catch (e) {}
     }
@@ -138,6 +142,21 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 toggleText.textContent = 'worst';
             }
+            // Wenn im Edit-Modus, auch den Wert im Input-Feld togglen
+            if (isEditing && input) {
+                if (input.value.trim().toUpperCase() === 'WORST') {
+                    input.value = 'BEST';
+                } else if (input.value.trim().toUpperCase() === 'BEST') {
+                    input.value = 'WORST';
+                }
+            } else {
+                // Highlight-Word togglen, falls nicht im Edit-Modus
+                if (highlight.textContent.trim().toUpperCase() === 'WORST') {
+                    highlight.textContent = 'BEST';
+                } else if (highlight.textContent.trim().toUpperCase() === 'BEST') {
+                    highlight.textContent = 'WORST';
+                }
+            }
             toggleText.classList.remove('strikethrough');
         }, 300);
     });
@@ -150,30 +169,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const mintBtn = document.querySelector('.mint-btn');
     const mintBar = document.querySelector('.mint-bar');
     let mintInfoBox = null;
+    let mintClicked = false;
+    let lastMintedWord = null;
 
     mintBtn.addEventListener('click', async () => {
-        if (!mintInfoBox) {
-            mintInfoBox = document.createElement('div');
-            mintInfoBox.className = 'mint-info-box';
-            mintInfoBox.innerHTML = '<div>word</div><div>is</div><div><span class="highlight info-highlight">GONE</span></div>';
-            mintBar.appendChild(mintInfoBox);
-            mintBtn.classList.add('mint-strikethrough');
+        const currentWord = highlight.textContent;
+        if (!mintClicked || lastMintedWord !== currentWord) {
+            // Erster Klick oder Wort wurde geändert: Counter hochzählen, kein Infobox
+            await incrementCounter();
+            mintClicked = true;
+            lastMintedWord = currentWord;
+            // Infobox entfernen, falls noch sichtbar
+            if (mintInfoBox) {
+                mintBar.removeChild(mintInfoBox);
+                mintInfoBox = null;
+                mintBtn.classList.remove('mint-strikethrough');
+            }
+        } else {
+            // Zweiter Klick (ohne Wortänderung): Infobox anzeigen
+            if (!mintInfoBox) {
+                mintInfoBox = document.createElement('div');
+                mintInfoBox.className = 'mint-info-box';
+                mintInfoBox.innerHTML = '<div>word</div><div>is</div><div><span class="highlight info-highlight">GONE</span></div>';
+                mintBar.appendChild(mintInfoBox);
+                mintBtn.classList.add('mint-strikethrough');
+            } else {
+                // Infobox erneut "shaken"
+                mintInfoBox.classList.remove('shake');
+                void mintInfoBox.offsetWidth;
+                mintInfoBox.classList.add('shake');
+            }
         }
     });
-
-    // Entferne Infobox und Strikethrough bei Editieren oder Speichern
-    function clearMintBox() {
-        if (mintInfoBox) {
-            mintBar.removeChild(mintInfoBox);
-            mintInfoBox = null;
-        }
-        mintBtn.classList.remove('mint-strikethrough');
-    }
 
     // Edit/Save functionality für das Highlight-Word
     editBtn.addEventListener('click', async () => {
         if (!isEditing) {
-            clearMintBox();
             isEditing = true;
             editIcon.innerHTML = saveSVG;
             // Input-Feld erzeugen
@@ -201,6 +232,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             highlight.textContent = newWord;
             await saveWord(newWord);
+            // Mint-Button und Infobox zurücksetzen
+            mintClicked = false;
+            lastMintedWord = null;
+            if (mintInfoBox) {
+                mintBar.removeChild(mintInfoBox);
+                mintInfoBox = null;
+            }
+            mintBtn.classList.remove('mint-strikethrough');
             // Animation: Input ausblenden, Highlight einblenden
             input.classList.add('hide');
             setTimeout(() => {
@@ -210,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Icon zurück zu "Edit"
             editIcon.innerHTML = editSVG;
             isEditing = false;
-            clearMintBox();
         }
     });
 
@@ -263,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editBtnMobile) {
         editBtnMobile.addEventListener('click', async () => {
             if (!isEditingMobile) {
-                clearMintBox();
                 isEditingMobile = true;
                 editIconMobile.innerHTML = saveSVG;
                 // Input-Feld erzeugen
@@ -283,6 +320,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputMobile.addEventListener('input', () => {
                     inputMobile.value = inputMobile.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
                 });
+                // Toggle-Button auch im Edit-Modus für Mobile
+                const toggleButtonMobile = document.querySelector('.mobile-headline .toggle-button');
+                if (toggleButtonMobile) {
+                    toggleButtonMobile.onclick = () => {
+                        toggleText.classList.add('strikethrough');
+                        setTimeout(() => {
+                            body.classList.toggle('toggled');
+                            if (toggleText.textContent === 'worst') {
+                                toggleText.textContent = 'best';
+                            } else {
+                                toggleText.textContent = 'worst';
+                            }
+                            if (isEditingMobile && inputMobile) {
+                                if (inputMobile.value.trim().toUpperCase() === 'WORST') {
+                                    inputMobile.value = 'BEST';
+                                } else if (inputMobile.value.trim().toUpperCase() === 'BEST') {
+                                    inputMobile.value = 'WORST';
+                                }
+                            } else {
+                                if (highlightMobile.textContent.trim().toUpperCase() === 'WORST') {
+                                    highlightMobile.textContent = 'BEST';
+                                } else if (highlightMobile.textContent.trim().toUpperCase() === 'BEST') {
+                                    highlightMobile.textContent = 'WORST';
+                                }
+                            }
+                            toggleText.classList.remove('strikethrough');
+                        }, 300);
+                    };
+                }
             } else {
                 // Speichern
                 let newWord = inputMobile.value.trim().toUpperCase();
@@ -291,6 +357,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 syncHighlightWord(newWord);
                 await saveWord(newWord);
+                // Mint-Button und Infobox zurücksetzen (Mobile)
+                mintClicked = false;
+                lastMintedWord = null;
+                if (mintInfoBox) {
+                    mintBar.removeChild(mintInfoBox);
+                    mintInfoBox = null;
+                }
+                mintBtn.classList.remove('mint-strikethrough');
                 // Animation: Input ausblenden, Highlight einblenden
                 inputMobile.classList.add('hide');
                 setTimeout(() => {
@@ -300,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Icon zurück zu "Edit"
                 editIconMobile.innerHTML = editSVG;
                 isEditingMobile = false;
-                clearMintBox();
             }
         });
     }
