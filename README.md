@@ -1,4 +1,4 @@
-# word of CHOICE
+# word of CHOICE 
 
 An interactive experiment that mints words and stores them on the blockchain.
 
