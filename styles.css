@@ -180,13 +180,25 @@ body.toggled .edit-button {
     z-index: 2;
 }
 
-.toggle-button svg {
-    width: 2.2rem;
-    height: 2.2rem;
-    min-width: 32px;
-    min-height: 32px;
-    max-width: 48px;
-    max-height: 48px;
+.toggle-button svg, .edit-button svg {
+    width: 2.2rem !important;
+    height: 2.2rem !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    display: block;
+    margin: 0 auto;
+    transition: filter 0.2s, transform 0.18s cubic-bezier(0.4,0.2,0.2,1);
+}
+.toggle-button, .edit-button {
+    transition: background 0.3s, color 0.3s, transform 0.18s cubic-bezier(0.4,0.2,0.2,1), box-shadow 0.18s cubic-bezier(0.4,0.2,0.2,1);
+}
+.toggle-button:hover, .edit-button:hover, .toggle-button:active, .edit-button:active {
+    filter: brightness(0.97) contrast(1.08);
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 4px 16px rgba(44,36,27,0.13);
+    z-index: 2;
 }
 
 #edit-icon svg {
@@ -222,8 +234,51 @@ body.toggled .edit-button {
         font-size: 2.5rem;
     }
     .info-section {
-        font-size: 1.3rem;
-        padding: 2.5vw 4vw;
+        padding: 0.7em 1em 0.7em 1em;
+        font-size: 0.95em;
+        min-height: unset;
+        max-height: 18vh;
+        height: auto;
+        border-radius: 0.7em 0.7em 0 0;
+        box-shadow: 0 -1px 8px rgba(44,36,27,0.10);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-direction: row;
+        gap: 0.5em;
+    }
+    .info-section > div {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.7em !important;
+        width: 100%;
+    }
+    .info-headline {
+        font-size: 1em !important;
+        margin-bottom: 0 !important;
+        margin-right: 0.5em !important;
+    }
+    .info-highlight {
+        font-size: 1em !important;
+        margin: 0 !important;
+        padding: 0.05em 0.2em !important;
+    }
+    .info-text {
+        display: none !important;
+    }
+    .info-details-row {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.7em !important;
+        font-size: 0.95em !important;
+        margin: 0 !important;
+        text-align: left !important;
+    }
+    .cost-detail, .price-detail, .social-detail {
+        font-size: 1em !important;
+        padding: 0 0.2em !important;
+        min-width: 5.5em;
+        text-align: left;
     }
     .toggle-button, .edit-button {
         font-size: 2rem;
@@ -232,13 +287,39 @@ body.toggled .edit-button {
         max-width: 80px;
         max-height: 80px;
     }
-    #edit-icon svg, .toggle-button svg {
-        width: 2.2rem;
-        height: 2.2rem;
-        min-width: 32px;
-        min-height: 32px;
-        max-width: 48px;
-        max-height: 48px;
+    .toggle-button svg {
+        width: 2.7rem !important;
+        height: 2.7rem !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
+    }
+    .edit-button svg {
+        width: 2.1rem !important;
+        height: 2.1rem !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        max-width: 36px !important;
+        max-height: 36px !important;
+    }
+}
+@media (min-width: 1200px) {
+    .edit-button svg {
+        width: 2.7rem !important;
+        height: 2.7rem !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
+    }
+    .toggle-button svg {
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        max-width: 40px !important;
+        max-height: 40px !important;
     }
 }
 
@@ -501,6 +582,7 @@ body.toggled .headline-highlight {
     flex-direction: column;
     align-items: flex-end;
     z-index: 100;
+    gap: 0.5em;
 }
 .mint-btn {
     background: #F5E9D4;
@@ -619,31 +701,85 @@ body.toggled .info-section .headline-word {
 }
 
 .mint-info-box {
-    width: 7vw;
-    height: 7vw;
-    min-width: 90px;
-    min-height: 90px;
-    max-width: 160px;
-    max-height: 160px;
     background: #F5E9D4;
     color: #2C241B;
-    border-radius: 0.4em;
-    font-size: 1.4em;
+    border-radius: 0.6em;
+    font-size: 1.1em;
     font-weight: bold;
+    box-shadow: 0 2px 8px rgba(44,36,27,0.10);
+    letter-spacing: 0.03em;
+    line-height: 1.18;
+    max-width: 180px;
+    min-width: 80px;
+    min-height: 60px;
+    width: auto;
+    height: auto;
+    padding: 0.7em 1.1em;
+    word-break: break-word;
+    white-space: normal;
+    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    margin-top: 0.7em;
-    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
-    transition: background 0.5s, color 0.5s;
-    z-index: 101;
-    letter-spacing: 0.03em;
-    padding: 1em;
-    line-height: 1.18;
+    margin-top: 0.5em;
+    transition: background 0.5s, color 0.5s, box-shadow 0.3s;
 }
 body.toggled .mint-info-box {
     background: #2C241B;
     color: #F5E9D4;
+    box-shadow: 0 2px 8px rgba(245,233,212,0.10);
+}
+@media (max-width: 600px) {
+    .mint-info-box {
+        max-width: 90vw;
+        min-width: 60px;
+        max-height: 80px;
+        font-size: 1em;
+        padding: 0.5em 0.7em;
+        margin-top: 0.35em;
+    }
+    .mint-info-box div {
+        word-break: break-word;
+        white-space: normal;
+        text-align: center;
+    }
+    .mint-bar {
+        gap: 0.35em;
+    }
+}
+
+.cost-detail, .price-detail, .social-detail {
+    font-size: 1em !important;
+    padding: 0 0.2em !important;
+    margin: 0 !important;
+    display: inline-block;
+    vertical-align: middle;
+    min-width: 5.5em;
+    text-align: left;
+}
+@media (max-width: 600px) {
+    .cost-detail, .price-detail, .social-detail {
+        font-size: 1em !important;
+        padding: 0 0.2em !important;
+        min-width: 5.5em;
+        text-align: left;
+    }
+}
+
+@keyframes subtle-wiggle {
+  0% { transform: scale(1) rotate(0deg); }
+  10% { transform: scale(1.03) rotate(-8deg); }
+  20% { transform: scale(1.06) rotate(8deg); }
+  30% { transform: scale(1.03) rotate(-8deg); }
+  40% { transform: scale(1.06) rotate(8deg); }
+  50% { transform: scale(1.03) rotate(-8deg); }
+  60% { transform: scale(1.06) rotate(8deg); }
+  70% { transform: scale(1.03) rotate(-8deg); }
+  80% { transform: scale(1.06) rotate(8deg); }
+  90% { transform: scale(1.03) rotate(-8deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.toggle-button.wiggle, .edit-button.wiggle {
+  animation: subtle-wiggle 0.7s cubic-bezier(0.4,0.2,0.2,1) 1;
 } 

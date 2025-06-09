@@ -228,4 +228,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         idleIndex = (idleIndex + 1) % idleAnimals.length;
     }, 400);
+
+    // --- Subtiler, automatischer Wiggle-Loop für Toggle- und Edit-Button ---
+    function triggerWiggle(element) {
+        element.classList.remove('wiggle');
+        void element.offsetWidth;
+        element.classList.add('wiggle');
+        setTimeout(() => {
+            element.classList.remove('wiggle');
+        }, 350); // Animation-Dauer + Puffer
+    }
+
+    function startWiggleLoop() {
+        triggerWiggle(toggleButton);
+        setTimeout(() => {
+            triggerWiggle(editBtn);
+            setTimeout(startWiggleLoop, 5250); // 5,25s Pause, dann wieder von vorne
+        }, 2250);
+    }
+    setTimeout(startWiggleLoop, 1000); // Nach 1s Page-Load starten
 }); 
