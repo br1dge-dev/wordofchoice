@@ -202,12 +202,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Edit/Save functionality for the highlight word
+    // Zentrale Validierungsfunktion für das Highlight-Wort
+    async function validateWord(word) {
+        const trimmed = word.trim().toUpperCase();
+        if (trimmed.length === 0) {
+            return { valid: false, reason: 'empty' };
+        }
+        if (!/^[A-ZÄÖÜß]+$/.test(trimmed)) {
+            return { valid: false, reason: 'invalid_chars' };
+        }
+        // Prüfe, ob das Wort bereits existiert (API-Call)
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.word`, {
+                headers: {
+                    apikey: SUPABASE_API_KEY,
+                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                },
+            });
+            const data = await res.json();
+            if (data && data[0] && data[0].value === trimmed) {
+                return { valid: false, reason: 'exists' };
+            }
+        } catch (e) {}
+        return { valid: true };
+    }
+
+    // Edit/Save functionality für Desktop
     editBtn.addEventListener('click', async () => {
         if (!isEditing) {
             isEditing = true;
             editIcon.innerHTML = saveSVG;
-            // Input-Feld erzeugen
             input = document.createElement('input');
             input.type = 'text';
             input.maxLength = 10;
@@ -216,15 +240,12 @@ document.addEventListener('DOMContentLoaded', () => {
             input.placeholder = 'insert word';
             input.setAttribute('aria-label', 'Wort bearbeiten');
             input.style.textTransform = 'uppercase';
-            // Animation: Highlight ausblenden, Input einblenden
             highlight.style.display = 'none';
             highlight.parentNode.insertBefore(input, editBtn);
             input.focus();
-            // Validierung: Nur Buchstaben
             input.addEventListener('input', () => {
                 input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
             });
-            // Speichern bei Enter oder Blur
             input.addEventListener('keydown', async (e) => {
                 if (e.key === 'Enter') {
                     await saveEditInput();
@@ -236,7 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         async function saveEditInput() {
             let newWord = input.value.trim().toUpperCase();
-            if (newWord.length === 0) {
+            const validation = await validateWord(newWord);
+            if (!validation.valid) {
                 highlight.style.display = '';
                 highlight.textContent = 'ʕ◔ϖ◔ʔ';
                 mintBtn.disabled = true;
@@ -247,7 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 mintInfoBox = document.createElement('div');
                 mintInfoBox.className = 'mint-info-box';
-                mintInfoBox.innerHTML = '<div>word</div><div>is</div><div><span class="highlight info-highlight">INVALID</span></div>';
+                let reasonText = 'INVALID';
+                if (validation.reason === 'empty') reasonText = 'INVALID';
+                if (validation.reason === 'invalid_chars') reasonText = 'INVALID CHARS';
+                if (validation.reason === 'exists') reasonText = 'ALREADY EXISTS';
+                mintInfoBox.innerHTML = `<div>word</div><div>is</div><div><span class="highlight info-highlight">${reasonText}</span></div>`;
                 mintBar.appendChild(mintInfoBox);
                 mintBtn.classList.add('mint-strikethrough');
             } else {
@@ -325,7 +351,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isEditingMobile) {
                 isEditingMobile = true;
                 editIconMobile.innerHTML = saveSVG;
-                // Input-Feld erzeugen
                 inputMobile = document.createElement('input');
                 inputMobile.type = 'text';
                 inputMobile.maxLength = 10;
@@ -334,15 +359,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputMobile.placeholder = 'insert word';
                 inputMobile.setAttribute('aria-label', 'Wort bearbeiten');
                 inputMobile.style.textTransform = 'uppercase';
-                // Animation: Highlight ausblenden, Input einblenden
                 highlightMobile.style.display = 'none';
                 highlightMobile.parentNode.insertBefore(inputMobile, editBtnMobile);
                 inputMobile.focus();
-                // Validierung: Nur Buchstaben
                 inputMobile.addEventListener('input', () => {
                     inputMobile.value = inputMobile.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
                 });
-                // Toggle-Button auch im Edit-Modus für Mobile
                 const toggleButtonMobile = document.querySelector('.mobile-headline .toggle-button');
                 if (toggleButtonMobile) {
                     toggleButtonMobile.onclick = () => {
@@ -374,26 +396,42 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // Speichern
                 let newWord = inputMobile.value.trim().toUpperCase();
-                if (newWord.length === 0) {
-                    newWord = 'ʕ◔ϖ◔ʔ';
+                const validation = await validateWord(newWord);
+                if (!validation.valid) {
+                    syncHighlightWord('ʕ◔ϖ◔ʔ');
+                    mintBtn.disabled = true;
+                    mintBtn.classList.add('mint-disabled');
+                    if (mintInfoBox) {
+                        mintBar.removeChild(mintInfoBox);
+                        mintInfoBox = null;
+                    }
+                    mintInfoBox = document.createElement('div');
+                    mintInfoBox.className = 'mint-info-box';
+                    let reasonText = 'INVALID';
+                    if (validation.reason === 'empty') reasonText = 'INVALID';
+                    if (validation.reason === 'invalid_chars') reasonText = 'INVALID CHARS';
+                    if (validation.reason === 'exists') reasonText = 'ALREADY EXISTS';
+                    mintInfoBox.innerHTML = `<div>word</div><div>is</div><div><span class=\"highlight info-highlight\">${reasonText}</span></div>`;
+                    mintBar.appendChild(mintInfoBox);
+                    mintBtn.classList.add('mint-strikethrough');
+                } else {
+                    syncHighlightWord(newWord);
+                    await saveWord(newWord);
+                    mintClicked = false;
+                    lastMintedWord = null;
+                    if (mintInfoBox) {
+                        mintBar.removeChild(mintInfoBox);
+                        mintInfoBox = null;
+                    }
+                    mintBtn.classList.remove('mint-strikethrough');
+                    mintBtn.disabled = false;
+                    mintBtn.classList.remove('mint-disabled');
                 }
-                syncHighlightWord(newWord);
-                await saveWord(newWord);
-                // Reset mint button and infobox (Mobile)
-                mintClicked = false;
-                lastMintedWord = null;
-                if (mintInfoBox) {
-                    mintBar.removeChild(mintInfoBox);
-                    mintInfoBox = null;
-                }
-                mintBtn.classList.remove('mint-strikethrough');
-                // Animation: Input ausblenden, Highlight einblenden
                 inputMobile.classList.add('hide');
                 setTimeout(() => {
                     if (inputMobile && inputMobile.parentNode) inputMobile.parentNode.removeChild(inputMobile);
                     highlightMobile.style.display = '';
                 }, 300);
-                // Icon back to "Edit"
                 editIconMobile.innerHTML = editSVG;
                 isEditingMobile = false;
             }
