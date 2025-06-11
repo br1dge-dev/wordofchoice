@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <!-- Background -->
+  <rect width="500" height="500" fill="#2C241B"/>
+  <!-- Token number box (top left) -->
+  <rect x="{counterX}" y="{counterY}" width="{counterWidth}" height="{counterHeight}" rx="10" fill="#F5E9D4"/>
+  <text x="{counterTextX}" y="{counterTextY}" font-size="28" fill="#2C241B" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">#{tokenId}</text>
+  <!-- Claim group centered -->
+  <!-- First line: static text -->
+  <text x="250" y="220" font-size="40" fill="#F5E9D4" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle">The best thing about</text>
+  <!-- Second line: 'life is' + highlight box + word, all in one line -->
+  <g>
+    <!-- 'life is' part -->
+    <text x="{line2StartX}" y="280" font-size="40" fill="#F5E9D4" font-family="Arial, sans-serif" font-weight="bold" text-anchor="start">
+      <tspan font-weight="bold" text-decoration="underline">life</tspan> is
+    </text>
+    <!-- Highlight box for the word -->
+    <rect x="{boxX}" y="{boxY}" width="{boxWidth}" height="{boxHeight}" rx="14" fill="#F5E9D4"/>
+    <!-- Highlighted word inside the box -->
+    <text x="{wordX}" y="{wordY}" font-size="40" fill="#2C241B" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">{word}</text>
+  </g>
+</svg> 

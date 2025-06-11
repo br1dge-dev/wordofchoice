@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <!-- Background (hell) -->
+  <rect width="500" height="500" fill="#F5E9D4"/>
+  <!-- Token number box (top left, dunkel) -->
+  <rect x="24" y="24" width="80" height="40" rx="11" fill="#2C241B"/>
+  <text x="64" y="48" font-size="28" fill="#F5E9D4" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">#2222</text>
+  <!-- First line: centered, dunkel -->
+  <text x="250" y="220" font-size="40" fill="#2C241B" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle">The worst thing about</text>
+  <!-- Second line: 'life is' + große Box, alles zentriert, Box mittig zur Zeile, Wort perfekt zentriert, Box dunkel -->
+  <g>
+    <text x="130" y="312" font-size="40" fill="#2C241B" font-family="Arial, sans-serif" font-weight="bold" text-anchor="end">
+      <tspan font-weight="bold" text-decoration="underline">life</tspan> is
+    </text>
+    <rect x="140" y="266" width="340" height="64" rx="11" fill="#2C241B"/>
+    <text x="310" y="298" font-size="56" fill="#F5E9D4" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" alignment-baseline="middle" dominant-baseline="middle">SOLANA</text>
+  </g>
+</svg> 

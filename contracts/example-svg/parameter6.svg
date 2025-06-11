@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <!-- Background -->
+  <rect width="500" height="500" fill="#2C241B"/>
+  <!-- Token number box (top left) -->
+  <rect x="24" y="24" width="80" height="40" rx="12" fill="#F5E9D4"/>
+  <text x="64" y="48" font-size="28" fill="#2C241B" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">#1</text>
+  <!-- First line: centered -->
+  <text x="250" y="220" font-size="40" fill="#F5E9D4" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle">The best thing about</text>
+  <!-- Second line: left 'life is', right box with word, alles zentriert als Gruppe -->
+  <g>
+    <!-- Maße -->
+    <!-- Box: 240px breit, 56px hoch, rechtsbündig zur Gesamtzeile -->
+    <!-- 'life is' Text: rechtsbündig an (250-120) = 130, Box startet bei 250-120+10=140 -->
+    <!-- Gesamtbreite: Text (ca. 110px) + 10px Abstand + Box (240px) = 360px, Start bei (500-360)/2=70 -->
+    <text x="120" y="285" font-size="40" fill="#F5E9D4" font-family="Arial, sans-serif" font-weight="bold" text-anchor="end">
+      <tspan font-weight="bold" text-decoration="underline">life</tspan> is
+    </text>
+    <rect x="130" y="250" width="240" height="56" rx="16" fill="#F5E9D4"/>
+    <text x="250" y="288" font-size="40" fill="#2C241B" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">EDITEDITEDIT</text>
+  </g>
+</svg> 
