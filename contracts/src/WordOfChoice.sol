@@ -47,7 +47,7 @@ contract WordOfChoice is ERC721, Ownable {
      * @param isBest Whether the expression is "best" or "worst"
      * @param word The word to be used in the expression (max 8 chars, A-Z)
      */
-    function mintExpression(bool isBest, string memory word) external payable {
+    function express(bool isBest, string memory word) external payable {
         if (msg.value < mintPrice) revert InsufficientPayment();
         if (!_validateWord(word)) revert InvalidWord();
         if (usedWords[word]) revert WordAlreadyUsed();
