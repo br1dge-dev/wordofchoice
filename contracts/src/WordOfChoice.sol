@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -14,7 +11,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
  * @dev ERC721 token contract for minting expressions with words
  * @custom:security-contact security@wordofchoice.xyz
  */
-contract WordOfChoice is ERC721Enumerable, ERC721URIStorage, Pausable, ReentrancyGuard, Ownable {
+contract WordOfChoice is ERC721, Ownable {
     using Strings for uint256;
 
     // Struct to store expression data
@@ -27,46 +24,31 @@ contract WordOfChoice is ERC721Enumerable, ERC721URIStorage, Pausable, Reentranc
     // State variables
     uint256 public nextTokenId = 1;
     uint256 public mintPrice = 0.001 ether;
-    uint256 public maxSupply = 10000; // Maximum supply of tokens
     mapping(uint256 => Expression) public expressions;
     mapping(string => bool) public usedWords; // Track used words to prevent duplicates
 
     // Events
     event ExpressionMinted(address indexed minter, uint256 indexed tokenId, bool isBest, string word, uint256 timestamp);
     event MintPriceChanged(uint256 newPrice);
-    event MaxSupplyChanged(uint256 newMaxSupply);
-    event ContractPaused(address indexed by);
-    event ContractUnpaused(address indexed by);
 
     // Errors
     error InvalidWord();
     error WordAlreadyUsed();
     error InsufficientPayment();
-    error MaxSupplyReached();
     error InvalidTokenId();
-    error ContractPaused();
 
     /**
      * @dev Constructor sets the initial owner and token details
      */
-    constructor() 
-        ERC721("WordOfChoice", "WOC") 
-        Ownable(msg.sender) 
-    {}
+    constructor() ERC721("WordOfChoice", "WOC") Ownable(msg.sender) {}
 
     /**
      * @dev Mints a new expression token
      * @param isBest Whether the expression is "best" or "worst"
      * @param word The word to be used in the expression (max 8 chars, A-Z)
      */
-    function mintExpression(bool isBest, string memory word) 
-        external 
-        payable 
-        nonReentrant 
-        whenNotPaused 
-    {
+    function mintExpression(bool isBest, string memory word) external payable {
         if (msg.value < mintPrice) revert InsufficientPayment();
-        if (totalSupply() >= maxSupply) revert MaxSupplyReached();
         if (!_validateWord(word)) revert InvalidWord();
         if (usedWords[word]) revert WordAlreadyUsed();
 
@@ -87,32 +69,6 @@ contract WordOfChoice is ERC721Enumerable, ERC721URIStorage, Pausable, Reentranc
     function setMintPrice(uint256 newPrice) external onlyOwner {
         mintPrice = newPrice;
         emit MintPriceChanged(newPrice);
-    }
-
-    /**
-     * @dev Updates the maximum supply
-     * @param newMaxSupply The new maximum supply
-     */
-    function setMaxSupply(uint256 newMaxSupply) external onlyOwner {
-        require(newMaxSupply >= totalSupply(), "New max supply must be >= current supply");
-        maxSupply = newMaxSupply;
-        emit MaxSupplyChanged(newMaxSupply);
-    }
-
-    /**
-     * @dev Pauses the contract
-     */
-    function pause() external onlyOwner {
-        _pause();
-        emit ContractPaused(msg.sender);
-    }
-
-    /**
-     * @dev Unpauses the contract
-     */
-    function unpause() external onlyOwner {
-        _unpause();
-        emit ContractUnpaused(msg.sender);
     }
 
     /**
@@ -141,13 +97,8 @@ contract WordOfChoice is ERC721Enumerable, ERC721URIStorage, Pausable, Reentranc
      * @param tokenId The token ID
      * @return string The token URI
      */
-    function tokenURI(uint256 tokenId) 
-        public 
-        view 
-        override(ERC721, ERC721URIStorage) 
-        returns (string memory) 
-    {
-        if (!_exists(tokenId)) revert InvalidTokenId();
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        _requireOwned(tokenId);
         
         Expression memory expr = expressions[tokenId];
         string memory mode = expr.isBest ? "best" : "worst";
@@ -225,28 +176,5 @@ contract WordOfChoice is ERC721Enumerable, ERC721URIStorage, Pausable, Reentranc
             (timestamp / 86400 + 1).toString(), // Days since epoch
             " days since genesis"
         ));
-    }
-
-    // Required overrides for multiple inheritance
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        uint256 batchSize
-    ) internal override(ERC721, ERC721Enumerable) whenNotPaused {
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
-    }
-
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
-        super._burn(tokenId);
-    }
-
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, ERC721Enumerable, ERC721URIStorage)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
     }
 } 
