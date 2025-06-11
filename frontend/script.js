@@ -25,105 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const editSVG = `<svg id=\"edit-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><path d=\"M20 12H7M11 8l-4 4 4 4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
     const saveSVG = `<svg id=\"save-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><rect x=\"8\" y=\"16\" width=\"8\" height=\"2\" fill=\"currentColor\"/><rect x=\"8\" y=\"8\" width=\"8\" height=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>`;
 
-
-
-    // async function fetchCounter() {
-    //     try {
-    //         const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.counter`, {
-    //             headers: {
-    //                 apikey: SUPABASE_API_KEY,
-    //                 Authorization: `Bearer ${SUPABASE_API_KEY}`,
-    //             },
-    //         });
-    //         const data = await res.json();
-    //         count = data && data[0] ? parseInt(data[0].value, 10) : 1;
-    //         clearInterval(loadingInterval);
-    //         counter.textContent = `#${count}`;
-    //     } catch (e) {
-    //         clearInterval(loadingInterval);
-    //         loadingInterval = setInterval(() => {
-    //             counter.textContent = '#' + animalFrames[animalIndex];
-    //             animalIndex = (animalIndex + 1) % animalFrames.length;
-    //         }, 400);
-    //     }
-    // }
-    // async function incrementCounter() {
-    //     try {
-    //         // Fetch counter
-    //         const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.counter`, {
-    //             headers: {
-    //                 apikey: SUPABASE_API_KEY,
-    //                 Authorization: `Bearer ${SUPABASE_API_KEY}`,
-    //             },
-    //         });
-    //         let data = await res.json();
-    //         let newCount = data && data[0] ? parseInt(data[0].value, 10) + 1 : 1;
-    //         // Set counter
-    //         await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?key=eq.counter`, {
-    //             method: 'PATCH',
-    //             headers: {
-    //                 apikey: SUPABASE_API_KEY,
-    //                 Authorization: `Bearer ${SUPABASE_API_KEY}`,
-    //                 'Content-Type': 'application/json',
-    //                 Prefer: 'return=representation',
-    //             },
-    //             body: JSON.stringify({ value: String(newCount) }),
-    //         });
-    //         count = newCount;
-    //         counter.textContent = `#${count}`;
-    //     } catch (e) {
-    //         counter.textContent = '#?';
-    //     }
-    // }
-    // async function fetchWord() {
-    //     if (wordInterval) clearInterval(wordInterval);
-    //     let wordIndex = 0;
-    //     const wordFrames = [
-    //         'ʕ◴ᴥ◴ʔ',
-    //         'ʕ◷ᴥ◷ʔ',
-    //         'ʕ◶ᴥ◶ʔ',
-    //         'ʕ◵ᴥ◵ʔ'
-    //     ];
-    //     highlight.textContent = wordFrames[wordIndex];
-    //     if (highlightMobile) highlightMobile.textContent = wordFrames[wordIndex];
-    //     wordInterval = setInterval(() => {
-    //         highlight.textContent = wordFrames[wordIndex];
-    //         if (highlightMobile) highlightMobile.textContent = wordFrames[wordIndex];
-    //         wordIndex = (wordIndex + 1) % wordFrames.length;
-    //     }, 400);
-    //     try {
-    //         const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.word`, {
-    //             headers: {
-    //                 apikey: SUPABASE_API_KEY,
-    //                 Authorization: `Bearer ${SUPABASE_API_KEY}`,
-    //             },
-    //         });
-    //         const data = await res.json();
-    //         clearInterval(wordInterval);
-    //         wordInterval = null;
-    //         const loadedWord = data && data[0] ? data[0].value : 'WORD';
-    //         highlight.textContent = loadedWord;
-    //         if (highlightMobile) highlightMobile.textContent = loadedWord;
-    //     } catch (e) {
-    //         // Animation continues
-    //     }
-    // }
-    // async function saveWord(newWord) {
-    //     try {
-    //         await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?key=eq.word`, {
-    //             method: 'PATCH',
-    //             headers: {
-    //                 apikey: SUPABASE_API_KEY,
-    //                 Authorization: `Bearer ${SUPABASE_API_KEY}`,
-    //                 'Content-Type': 'application/json',
-    //                 Prefer: 'return=representation',
-    //             },
-    //             body: JSON.stringify({ value: newWord }),
-    //         });
-    //     } catch (e) {}
-    // }
-    // ===================== END LOCAL MODE =====================
-
     // Toggle dark/light mode
     toggleButton.addEventListener('click', () => {
         // Strikethrough animation for the fading word
@@ -157,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Highlight-Word global laden
     let wordInterval = null;
-    // fetchWord();
 
     // Mint-Button Funktionalität
     const mintBtn = document.querySelector('.mint-btn');
@@ -186,19 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!/^[A-ZÄÖÜß]+$/.test(trimmed)) {
             return { valid: false, reason: 'invalid_chars' };
         }
-        // Prüfe, ob das Wort bereits existiert (API-Call)
-        // try {
-        //     const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.word`, {
-        //         headers: {
-        //             apikey: SUPABASE_API_KEY,
-        //             Authorization: `Bearer ${SUPABASE_API_KEY}`,
-        //         },
-        //     });
-        //     const data = await res.json();
-        //     if (data && data[0] && data[0].value === trimmed) {
-        //         return { valid: false, reason: 'exists' };
-        //     }
-        // } catch (e) {}
         return { valid: true };
     }
 
@@ -253,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 mintBtn.classList.add('mint-strikethrough');
             } else {
                 highlight.textContent = newWord;
-                // await saveWord(newWord);
                 mintClicked = false;
                 lastMintedWord = null;
                 if (mintInfoBox) {
@@ -391,7 +277,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     mintBtn.classList.add('mint-strikethrough');
                 } else {
                     syncHighlightWord(newWord);
-                    // await saveWord(newWord);
                     mintClicked = false;
                     lastMintedWord = null;
                     if (mintInfoBox) {
@@ -417,10 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (highlight && highlightMobile) {
         highlightMobile.textContent = highlight.textContent;
     }
-
-    // --- Supabase-API-Calls wieder aktivieren, Tieranimationen nur als Platzhalter beim Laden ---
-    // fetchCounter();
-    // fetchWord();
 
     // Wallet Connection State
     let isConnected = false;
@@ -572,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- WordOfChoice Contract Integration ---
 
     // 1. Contract address
-    const contractAddress = "0xD8d4871716884B4846457618627E514f1a2355c6";
+    const contractAddress = "0x1a5541569761c0F60e48F6f18845e923873429B0";
 
     // 2. Contract ABI (only relevant functions)
     const contractABI = [
@@ -581,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 { "internalType": "bool", "name": "isBest", "type": "bool" },
                 { "internalType": "string", "name": "word", "type": "string" }
             ],
-            "name": "mintExpression",
+            "name": "express",
             "outputs": [],
             "stateMutability": "payable",
             "type": "function"
@@ -614,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         const value = ethers.parseEther("0.001");
         try {
-            const tx = await contract.mintExpression(isBest, word, { value });
+            const tx = await contract.express(isBest, word, { value });
             await tx.wait();
             alert("NFT successfully minted!");
         } catch (err) {
@@ -638,18 +519,4 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
     // --- Ende Integration ---
-
-    // Platzhalter für Counter und Wort (ohne Supabase)
-    function fetchCounterPlaceholder() {
-        clearInterval(loadingInterval);
-        count = 1; // Default
-        counter.textContent = `#${count}`;
-    }
-    function fetchWordPlaceholder() {
-        if (wordInterval) clearInterval(wordInterval);
-        highlight.textContent = 'WORD';
-        if (highlightMobile) highlightMobile.textContent = 'WORD';
-    }
-    fetchCounterPlaceholder();
-    fetchWordPlaceholder();
 }); 
