@@ -102,8 +102,8 @@ contract WordOfChoice is ERC721, Ownable {
         
         Expression memory expr = expressions[tokenId];
         string memory mode = expr.isBest ? "best" : "worst";
-        string memory colorBg = expr.isBest ? "#2C241B" : "#F5E9D4";
-        string memory colorFg = expr.isBest ? "#F5E9D4" : "#2C241B";
+        string memory colorBg = expr.isBest ? "#F5E9D4" : "#2C241B";
+        string memory colorFg = expr.isBest ? "#2C241B" : "#F5E9D4";
         string memory headline = expr.isBest ? "The best thing about" : "The worst thing about";
         
         string memory svg = _generateSVG(tokenId, expr.isBest, expr.word, colorBg, colorFg, headline);
@@ -146,12 +146,12 @@ contract WordOfChoice is ERC721, Ownable {
             '<text x="74" y="48" font-size="28" fill="', colorBg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">#', tokenId.toString(), '</text>'
         ));
         
-        // Headline
+        // Headline (ohne ⟳-Symbol)
         string memory svg3 = string(abi.encodePacked(
             '<text x="250" y="220" font-size="40" fill="', colorFg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle">', headline, '</text>'
         ));
         
-        // Second line: life is + box + word
+        // Second line: life is + box + word (ohne Pfeil)
         string memory svg4 = string(abi.encodePacked(
             '<g>',
             '<text x="130" y="312" font-size="40" fill="', colorFg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="end">',

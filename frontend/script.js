@@ -572,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- WordOfChoice Contract Integration ---
 
     // 1. Contract address
-    const contractAddress = "0x48279F9ccc5C82315553141a79FB16cC1680a196";
+    const contractAddress = "0xD8d4871716884B4846457618627E514f1a2355c6";
 
     // 2. Contract ABI (only relevant functions)
     const contractABI = [
