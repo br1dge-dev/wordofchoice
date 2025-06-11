@@ -51,7 +51,7 @@ contract WordOfChoice is ERC721, Ownable {
     }
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        // Existenzprüfung über ownerOf (Fallback)
+        // Existence check via ownerOf (fallback)
         try this.ownerOf(tokenId) returns (address) {} catch { revert("Nonexistent token"); }
         Expression memory expr = expressions[tokenId];
         string memory mode = expr.isBest ? "best" : "worst";
@@ -75,7 +75,7 @@ contract WordOfChoice is ERC721, Ownable {
         string memory colorFg,
         string memory headline
     ) internal pure returns (string memory) {
-        // SVG-Header und Filter (Grain)
+        // SVG header and filter (grain)
         string memory svg1 = string(abi.encodePacked(
             '<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">',
             '<defs>',
@@ -86,7 +86,7 @@ contract WordOfChoice is ERC721, Ownable {
             '</filter></defs>',
             '<rect width="500" height="500" fill="', colorBg, '"/>'
         ));
-        // Counter-Box
+        // Counter box
         string memory svg2 = string(abi.encodePacked(
             '<rect x="24" y="24" width="100" height="40" rx="11" fill="', colorFg, '"/>',
             '<text x="74" y="48" font-size="28" fill="', colorBg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">#', tokenId.toString(), '</text>'
@@ -95,7 +95,7 @@ contract WordOfChoice is ERC721, Ownable {
         string memory svg3 = string(abi.encodePacked(
             '<text x="250" y="220" font-size="40" fill="', colorFg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle">', headline, '</text>'
         ));
-        // Zweite Zeile: life is + Box + Wort
+        // Second line: life is + box + word
         string memory svg4 = string(abi.encodePacked(
             '<g>',
             '<text x="130" y="312" font-size="40" fill="', colorFg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="end">',
@@ -104,7 +104,7 @@ contract WordOfChoice is ERC721, Ownable {
             '<text x="310" y="298" font-size="56" fill="', colorBg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">', word, '</text>',
             '</g>'
         ));
-        // Grain-Overlay
+        // Grain overlay
         string memory svg5 = '<rect width="500" height="500" filter="url(#grain)" fill="#000" fill-opacity="0" style="pointer-events:none"/>';
         return string(abi.encodePacked(svg1, svg2, svg3, svg4, svg5, '</svg>'));
     }
