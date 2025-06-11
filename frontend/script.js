@@ -448,7 +448,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    checkInitialWalletConnection();
+    checkInitialWalletConnection().then(() => {
+        if (isConnected) {
+            fetchNextTokenId();
+        }
+    });
 
     // --- WordOfChoice Contract Integration ---
 
@@ -477,8 +481,30 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             "stateMutability": "view",
             "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "nextTokenId",
+            "outputs": [
+                { "internalType": "uint256", "name": "", "type": "uint256" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         }
     ];
+
+    // Fetch next token ID from contract
+    async function fetchNextTokenId() {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const contract = new ethers.Contract(contractAddress, contractABI, provider);
+        try {
+            const nextId = await contract.nextTokenId();
+            clearInterval(loadingInterval);
+            counter.textContent = `#${nextId}`;
+        } catch (e) {
+            console.error('Error fetching next token ID:', e);
+        }
+    }
 
     // 3. Mint-Funktion
     async function mintExpression(isBest, word) {
@@ -498,6 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tx = await contract.express(isBest, word, { value });
             await tx.wait();
             alert("NFT successfully minted!");
+            await fetchNextTokenId();
         } catch (err) {
             alert("Error minting: " + (err.info?.error?.message || err.message));
         }
