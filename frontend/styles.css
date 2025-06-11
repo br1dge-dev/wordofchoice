@@ -968,4 +968,107 @@ body.toggled .wallet-btn:hover {
   .info-text {
     display: none !important;
   }
+}
+
+.confirmation-modal-content {
+    max-width: 520px;
+    min-width: 320px;
+    padding: 2.7em 2em;
+}
+.confirmation-details {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 2em;
+    font-size: 1.25em;
+    color: inherit;
+}
+.confirmation-sentence {
+    font-weight: bold;
+    margin-bottom: 0.7em;
+    font-size: 1.18em;
+    letter-spacing: 0.01em;
+}
+.confirmation-price {
+    font-size: 1.1em;
+    margin-bottom: 0.2em;
+    color: inherit;
+}
+.confirmation-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 1.2em;
+    justify-content: center;
+    width: 100%;
+}
+.confirmation-highlight-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 0.7em;
+    margin-bottom: 2.2em;
+}
+.confirmation-sentence.highlight.info-highlight,
+.confirmation-price.highlight.info-highlight {
+    width: 90%;
+    min-width: 220px;
+    max-width: 420px;
+    text-align: center;
+    box-sizing: border-box;
+}
+.confirmation-sentence.highlight.info-highlight {
+    background: #F5E9D4 !important;
+    color: #2C241B !important;
+    font-size: 1.18em;
+    font-weight: bold;
+    line-height: 1.22;
+    white-space: pre-line;
+    margin-bottom: 0;
+    padding: 0.7em 1.2em 0.7em 1.2em;
+}
+.confirmation-price.highlight.info-highlight {
+    background: #2C241B !important;
+    color: #F5E9D4 !important;
+    font-size: 1.08em;
+    font-weight: bold;
+    margin-bottom: 0;
+    padding: 0.5em 1.2em 0.5em 1.2em;
+}
+.confirmation-actions.wide {
+    width: 94%;
+    margin: 1.5em auto 0 auto;
+    gap: 1.2em;
+}
+.confirmation-btn.wide {
+    width: 48%;
+    min-width: 120px;
+    font-size: 1.13em;
+    padding: 0.22em 0.7em;
+    margin: 0;
+}
+@media (max-width: 600px) {
+    .confirmation-highlight-group {
+        gap: 0.4em;
+        margin-bottom: 1.2em;
+    }
+    .confirmation-sentence.highlight.info-highlight,
+    .confirmation-price.highlight.info-highlight {
+        width: 98%;
+        min-width: 0;
+        max-width: 100vw;
+        font-size: 1em;
+        padding: 0.4em 0.5em;
+    }
+    .confirmation-actions.wide {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.7em;
+        margin-top: 1em;
+    }
+    .confirmation-btn.wide {
+        width: 100%;
+        min-width: 0;
+        font-size: 1em;
+        padding: 0.18em 0.5em;
+    }
 } 

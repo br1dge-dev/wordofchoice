@@ -108,6 +108,23 @@
             <p class="wallet-status" id="walletStatus"></p>
         </div>
     </div>
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal" style="display: none;">
+        <div class="modal-content confirmation-modal-content">
+            <span class="close-modal" id="closeConfirmation">&times;</span>
+            <h2 class="modal-headline">Confirm your <span class="highlight info-highlight">MINT</span></h2>
+            <div class="confirmation-details">
+                <div class="confirmation-highlight-group">
+                    <div class="confirmation-sentence highlight info-highlight" id="confirmationSentence"></div>
+                    <div class="confirmation-price highlight info-highlight" id="confirmationPriceBox"><span id="confirmationPriceLabel">Price:</span> <span id="confirmationPrice"></span> ETH</div>
+                </div>
+            </div>
+            <div class="confirmation-actions wide">
+                <button id="confirmMintBtn" class="wallet-btn confirmation-btn wide">Confirm</button>
+                <button id="cancelMintBtn" class="wallet-btn confirmation-btn cancel-btn wide" style="background:#e0d3b8;color:#2C241B;">Cancel</button>
+            </div>
+        </div>
+    </div>
     <script src="./script.js"></script>
 </body>
 </html> 

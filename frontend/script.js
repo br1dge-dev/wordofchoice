@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 toggleText.textContent = 'worst';
             }
-            // Wenn im Edit-Modus, auch den Wert im Input-Feld togglen
+            // If in edit mode, also toggle the value in the input field
             if (isEditing && input) {
                 if (input.value.trim().toUpperCase() === 'WORST') {
                     input.value = 'BEST';
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     input.value = 'WORST';
                 }
             } else {
-                // Highlight-Word togglen, falls nicht im Edit-Modus
+                // Toggle highlight word if not in edit mode
                 if (highlight.textContent.trim().toUpperCase() === 'WORST') {
                     highlight.textContent = 'BEST';
                 } else if (highlight.textContent.trim().toUpperCase() === 'BEST') {
@@ -56,28 +56,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     });
 
-    // Highlight-Word global laden
+    // Global highlight word loader
     let wordInterval = null;
 
-    // Mint-Button Funktionalität
+    // Mint button functionality
     const mintBtn = document.querySelector('.mint-btn');
     const mintBar = document.querySelector('.mint-bar');
     let mintInfoBox = null;
     let mintClicked = false;
     let lastMintedWord = null;
 
+    // --- Confirmation Modal ---
+    const confirmationModal = document.getElementById('confirmationModal');
+    const confirmationSentence = document.getElementById('confirmationSentence');
+    const confirmationPrice = document.getElementById('confirmationPrice');
+    const confirmMintBtn = document.getElementById('confirmMintBtn');
+    const cancelMintBtn = document.getElementById('cancelMintBtn');
+    const closeConfirmation = document.getElementById('closeConfirmation');
+    let pendingMint = null;
+
+    function openConfirmationModal(sentence, price, mintParams) {
+        confirmationSentence.textContent = sentence;
+        confirmationPrice.textContent = price;
+        confirmationModal.style.display = 'flex';
+        pendingMint = mintParams;
+    }
+    function closeConfirmationModal() {
+        confirmationModal.style.display = 'none';
+        pendingMint = null;
+    }
+    closeConfirmation.addEventListener('click', closeConfirmationModal);
+    cancelMintBtn.addEventListener('click', closeConfirmationModal);
+    window.addEventListener('click', (event) => {
+        if (event.target === confirmationModal) {
+            closeConfirmationModal();
+        }
+    });
+    confirmMintBtn.addEventListener('click', async () => {
+        if (pendingMint) {
+            await mintExpression(pendingMint.isBest, pendingMint.word);
+            closeConfirmationModal();
+        }
+    });
+
+    // --- Mint button functionality (adapted) ---
     mintBtn.addEventListener('click', async () => {
         if (!isConnected) {
             openModal();
         } else {
-            // --- Mint-Logik: Hole Toggle und Wort, führe Mint aus ---
             const isBest = (toggleText.textContent.trim().toLowerCase() === 'best');
             const word = highlight.textContent.trim();
-            await mintExpression(isBest, word);
+            // Satz immer zweizeilig
+            const headline = isBest ? 'The best thing about' : 'The worst thing about';
+            const sentence = `${headline}\nlife is ${word}`;
+            const price = '0.01';
+            openConfirmationModal(sentence, price, { isBest, word });
         }
     });
 
-    // Zentrale Validierungsfunktion für das Highlight-Wort
+    // Central validation function for the highlight word
     async function validateWord(word) {
         const trimmed = word.trim().toUpperCase();
         if (trimmed.length === 0) {
