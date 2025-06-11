@@ -638,4 +638,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
     // --- Ende Integration ---
+
+    // Platzhalter für Counter und Wort (ohne Supabase)
+    function fetchCounterPlaceholder() {
+        clearInterval(loadingInterval);
+        count = 1; // Default
+        counter.textContent = `#${count}`;
+    }
+    function fetchWordPlaceholder() {
+        if (wordInterval) clearInterval(wordInterval);
+        highlight.textContent = 'WORD';
+        if (highlightMobile) highlightMobile.textContent = 'WORD';
+    }
+    fetchCounterPlaceholder();
+    fetchWordPlaceholder();
 }); 
