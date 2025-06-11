@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // }
     // async function incrementCounter() {
     //     try {
-    //         // Counter holen
+    //         // Fetch counter
     //         const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=value&key=eq.counter`, {
     //             headers: {
     //                 apikey: SUPABASE_API_KEY,
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //         });
     //         let data = await res.json();
     //         let newCount = data && data[0] ? parseInt(data[0].value, 10) + 1 : 1;
-    //         // Counter setzen
+    //         // Set counter
     //         await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?key=eq.counter`, {
     //             method: 'PATCH',
     //             headers: {
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //         highlight.textContent = loadedWord;
     //         if (highlightMobile) highlightMobile.textContent = loadedWord;
     //     } catch (e) {
-    //         // Animation läuft weiter
+    //         // Animation continues
     //     }
     // }
     // async function saveWord(newWord) {
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //         });
     //     } catch (e) {}
     // }
-    // ===================== ENDE LOKALMODUS =====================
+    // ===================== END LOCAL MODE =====================
 
     // Toggle dark/light mode
     toggleButton.addEventListener('click', () => {
@@ -202,18 +202,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return { valid: true };
     }
 
-    // Edit/Save functionality für Desktop
+    // Edit/Save functionality for Desktop
     editBtn.addEventListener('click', async () => {
         if (!isEditing) {
             isEditing = true;
             editIcon.innerHTML = saveSVG;
             input = document.createElement('input');
             input.type = 'text';
-            input.maxLength = 10;
+            input.maxLength = 8;
             input.className = 'edit-input';
             input.value = '';
             input.placeholder = 'insert word';
-            input.setAttribute('aria-label', 'Wort bearbeiten');
+            input.setAttribute('aria-label', 'Edit word');
             input.style.textTransform = 'uppercase';
             highlight.style.display = 'none';
             highlight.parentNode.insertBefore(input, editBtn);
@@ -297,17 +297,17 @@ document.addEventListener('DOMContentLoaded', () => {
         element.classList.add('wiggle');
         setTimeout(() => {
             element.classList.remove('wiggle');
-        }, 350); // Animation-Dauer + Puffer
+        }, 350); // Animation duration + buffer
     }
 
     function startWiggleLoop() {
         triggerWiggle(toggleButton);
         setTimeout(() => {
             triggerWiggle(editBtn);
-            setTimeout(startWiggleLoop, 5250); // 5,25s Pause, dann wieder von vorne
+            setTimeout(startWiggleLoop, 5250); // 5.25s pause, then repeat
         }, 2250);
     }
-    setTimeout(startWiggleLoop, 1000); // Nach 1s Page-Load starten
+    setTimeout(startWiggleLoop, 1000); // Start after 1s page load
 
     // --- Mobile Headline Logik: Edit und Highlight synchronisieren ---
     const highlightMobile = document.getElementById('highlight-word-mobile');
@@ -328,11 +328,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 editIconMobile.innerHTML = saveSVG;
                 inputMobile = document.createElement('input');
                 inputMobile.type = 'text';
-                inputMobile.maxLength = 10;
+                inputMobile.maxLength = 8;
                 inputMobile.className = 'edit-input';
                 inputMobile.value = '';
                 inputMobile.placeholder = 'insert word';
-                inputMobile.setAttribute('aria-label', 'Wort bearbeiten');
+                inputMobile.setAttribute('aria-label', 'Edit word');
                 inputMobile.style.textTransform = 'uppercase';
                 highlightMobile.style.display = 'none';
                 highlightMobile.parentNode.insertBefore(inputMobile, editBtnMobile);
@@ -571,10 +571,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- WordOfChoice Contract Integration ---
 
-    // 1. Contract-Adresse
-    const contractAddress = "0xb91DBA76B8a3A034738780D2565A387Ee986772C";
+    // 1. Contract address
+    const contractAddress = "0x7Cc36F055FAe0b417CAbDC5dBA596CC1bC593AF3";
 
-    // 2. Contract-ABI (nur relevante Funktionen)
+    // 2. Contract ABI (only relevant functions)
     const contractABI = [
         {
             "inputs": [
@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "inputs": [
                 { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
             ],
-            "name": "getFullSentence",
+            "name": "tokenURI",
             "outputs": [
                 { "internalType": "string", "name": "", "type": "string" }
             ],
@@ -616,13 +616,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const tx = await contract.mintExpression(isBest, word, { value });
             await tx.wait();
-            alert("NFT erfolgreich gemintet!");
+            alert("NFT successfully minted!");
         } catch (err) {
-            alert("Fehler beim Minten: " + (err.info?.error?.message || err.message));
+            alert("Error minting: " + (err.info?.error?.message || err.message));
         }
     }
 
-    // 4. Event Listener für UI-Elemente
+    // 4. Event Listener for UI Elements
     window.addEventListener('DOMContentLoaded', function() {
         const mintButton = document.getElementById("mintButton");
         if (!mintButton) return;
