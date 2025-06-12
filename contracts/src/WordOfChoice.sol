@@ -101,17 +101,27 @@ contract WordOfChoice is ERC721, Ownable {
         _requireOwned(tokenId);
         
         Expression memory expr = expressions[tokenId];
-        string memory mode = expr.isBest ? "best" : "worst";
+        string memory tendency = expr.isBest ? "best" : "worst";
         string memory colorBg = expr.isBest ? "#F5E9D4" : "#2C241B";
         string memory colorFg = expr.isBest ? "#2C241B" : "#F5E9D4";
         string memory headline = expr.isBest ? "The best thing about" : "The worst thing about";
         
         string memory svg = _generateSVG(tokenId, expr.isBest, expr.word, colorBg, colorFg, headline);
+        string memory description = "Feel your mood, choose a word and mint your statement. Nicely numbered. An interactive, minimalistic EXPERIMENT, full of expressions. Made by br1dge, purely vibe-coded with CURSOR.";
         string memory json = string(abi.encodePacked(
-            '{"name":"word of CHOICE #', tokenId.toString(), 
-            '","description":"Onchain NFT. Mood: ', mode, '. Word: ', expr.word,
-            '. Minted: ', _formatTimestamp(expr.timestamp),
-            '","image":"data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '"}'
+            '{',
+                '"name":"word of CHOICE #', tokenId.toString(), '",',
+                '"description":"', description, '",',
+                '"image":"data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '",',
+                '"background_color":"F5E9D4",',
+                '"animation_url":null,',
+                '"attributes":[',
+                    '{"trait_type":"Tendency","value":"', tendency, '"},',
+                    '{"trait_type":"Expression","value":"', expr.word, '"},',
+                    '{"trait_type":"Minted","display_type":"date","value":', expr.timestamp.toString(), '},',
+                    '{"trait_type":"Token ID","value":', tokenId.toString(), '}',
+                ']'
+            '}'
         ));
         
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(json))));
