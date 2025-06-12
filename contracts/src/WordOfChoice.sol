@@ -110,7 +110,7 @@ contract WordOfChoice is ERC721, Ownable {
         string memory description = "Feel your mood, choose a word and mint your statement. Nicely numbered. An interactive, minimalistic EXPERIMENT, full of expressions. Made by br1dge, purely vibe-coded with CURSOR.";
         string memory json = string(abi.encodePacked(
             '{',
-                '"name":"word of CHOICE #', tokenId.toString(), '",',
+                '"name":"word of CHOICE (life) #', tokenId.toString(), '",',
                 '"description":"', description, '",',
                 '"image":"data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '",',
                 '"background_color":"F5E9D4",',
@@ -132,7 +132,7 @@ contract WordOfChoice is ERC721, Ownable {
      */
     function _generateSVG(
         uint256 tokenId,
-        bool isBest,
+        bool /* isBest */,
         string memory word,
         string memory colorBg,
         string memory colorFg,
