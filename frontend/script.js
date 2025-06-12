@@ -1,4 +1,94 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Zentrale Validierungslogik
+    const ValidationState = {
+        VALID: 'valid',
+        INVALID: 'invalid',
+        EMPTY: 'empty',
+        INVALID_CHARS: 'invalid_chars',
+        WORD_EXISTS: 'word_exists'
+    };
+
+    const ValidationFeedback = {
+        [ValidationState.VALID]: { text: '', valid: true },
+        [ValidationState.INVALID]: { text: 'INVALID', valid: false },
+        [ValidationState.EMPTY]: { text: 'EMPTY', valid: false },
+        [ValidationState.INVALID_CHARS]: { text: 'INVALID CHARS', valid: false },
+        [ValidationState.WORD_EXISTS]: { text: 'GONE', valid: false }
+    };
+
+    // Zentrale Validierungsfunktion
+    async function validateInput(word) {
+        const trimmed = word.trim().toUpperCase();
+        
+        // Empty input
+        if (trimmed.length === 0) {
+            return { state: ValidationState.EMPTY, feedback: ValidationFeedback[ValidationState.EMPTY] };
+        }
+
+        // Invalid characters (only A-Z, no ÄÖÜß)
+        if (!/^[A-Z]+$/.test(trimmed)) {
+            return { state: ValidationState.INVALID_CHARS, feedback: ValidationFeedback[ValidationState.INVALID_CHARS] };
+        }
+
+        // Too long
+        if (trimmed.length > 8) {
+            return { state: ValidationState.INVALID, feedback: { text: 'TOO LONG', valid: false } };
+        }
+
+        // Word already exists
+        try {
+            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+            const contract = new ethers.Contract(contractAddress, contractABI, provider);
+            const exists = await contract.usedWords(trimmed);
+            if (exists) {
+                return { state: ValidationState.WORD_EXISTS, feedback: ValidationFeedback[ValidationState.WORD_EXISTS] };
+            }
+        } catch (e) {
+            console.error('Error checking usedWords:', e);
+            return { state: ValidationState.INVALID, feedback: ValidationFeedback[ValidationState.INVALID] };
+        }
+
+        // All valid
+        return { state: ValidationState.VALID, feedback: ValidationFeedback[ValidationState.VALID] };
+    }
+
+    // UI Update Funktion für Validierungsfeedback
+    function updateValidationUI(validationResult) {
+        const { feedback } = validationResult;
+        
+        // Button-Text prüfen
+        const isMint = mintBtn.textContent.trim().toUpperCase() === 'MINT';
+        // Update Mint Button
+        if (isMint) {
+            mintBtn.disabled = !feedback.valid;
+            if (feedback.valid) {
+                mintBtn.classList.remove('mint-disabled', 'mint-strikethrough');
+            } else {
+                mintBtn.classList.add('mint-disabled', 'mint-strikethrough');
+            }
+        } else {
+            // CONNECT darf nie deaktiviert oder durchgestrichen sein
+            mintBtn.disabled = false;
+            mintBtn.classList.remove('mint-disabled', 'mint-strikethrough');
+        }
+
+        // Update Info Box
+        if (mintInfoBox) {
+            mintBar.removeChild(mintInfoBox);
+            mintInfoBox = null;
+        }
+        if (!feedback.valid && isMint) {
+            mintInfoBox = document.createElement('div');
+            mintInfoBox.className = 'mint-info-box';
+            mintInfoBox.innerHTML = `
+                <div>word</div>
+                <div>is</div>
+                <div><span class="highlight info-highlight">${feedback.text}</span></div>
+            `;
+            mintBar.appendChild(mintInfoBox);
+        }
+    }
+
     const body = document.body;
     const toggleButton = document.querySelector('.toggle-button');
     const toggleText = document.querySelector('.toggle-text');
@@ -30,12 +120,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Strikethrough animation for the fading word
         toggleText.classList.add('strikethrough');
         setTimeout(() => {
-            body.classList.toggle('toggled');
-            // Toggle the text between "worst" and "best"
+            // Theme-Logik: 'worst' = dark (kein toggled), 'best' = light (toggled)
             if (toggleText.textContent === 'worst') {
                 toggleText.textContent = 'best';
+                body.classList.add('toggled');
             } else {
                 toggleText.textContent = 'worst';
+                body.classList.remove('toggled');
             }
             // If in edit mode, also toggle the value in the input field
             if (isEditing && input) {
@@ -114,31 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Central validation function for the highlight word
-    async function validateWord(word) {
-        const trimmed = word.trim().toUpperCase();
-        if (trimmed.length === 0) {
-            return { valid: false, reason: 'empty' };
-        }
-        if (!/^[A-ZÄÖÜß]+$/.test(trimmed)) {
-            return { valid: false, reason: 'invalid_chars' };
-        }
-        return { valid: true };
-    }
-
-    // --- Wort-Existenz-Check am Contract ---
-    async function checkWordExists(word) {
-        try {
-            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-            const contract = new ethers.Contract(contractAddress, contractABI, provider);
-            // usedWords ist public, daher automatisch ein Getter
-            return await contract.usedWords(word);
-        } catch (e) {
-            console.error('Fehler beim Check auf usedWords:', e);
-            return false;
-        }
-    }
-
     // Edit/Save functionality for Desktop
     editBtn.addEventListener('click', async () => {
         if (!isEditing) {
@@ -155,8 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
             highlight.style.display = 'none';
             highlight.parentNode.insertBefore(input, editBtn);
             input.focus();
-            input.addEventListener('input', () => {
+            input.addEventListener('input', async () => {
                 input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
+                // Live-Validierung
+                const validation = await validateInput(input.value);
+                updateValidationUI(validation);
             });
             input.addEventListener('keydown', async (e) => {
                 if (e.key === 'Enter') {
@@ -169,48 +238,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         async function saveEditInput() {
             let newWord = input.value.trim().toUpperCase();
-            const validation = await validateWord(newWord);
-            let wordExists = false;
-            if (validation.valid) {
-                wordExists = await checkWordExists(newWord);
-            }
-            if (!validation.valid || wordExists) {
+            const validation = await validateInput(newWord);
+            if (!validation.feedback.valid) {
                 highlight.style.display = '';
-                highlight.textContent = 'ʕ◔ϖ◔ʔ';
-                mintBtn.disabled = true;
-                mintBtn.classList.add('mint-disabled');
-                if (mintInfoBox) {
-                    mintBar.removeChild(mintInfoBox);
-                    mintInfoBox = null;
+                if (validation.state === ValidationState.EMPTY) {
+                    highlight.textContent = 'ʕ◔ϖ◔ʔ';
+                } else {
+                    highlight.textContent = newWord || 'ʕ◔ϖ◔ʔ';
                 }
-                mintInfoBox = document.createElement('div');
-                mintInfoBox.className = 'mint-info-box';
-                let reasonText = 'INVALID';
-                if (validation.reason === 'empty') reasonText = 'INVALID';
-                if (validation.reason === 'invalid_chars') reasonText = 'has INVALID CHARS';
-                if (validation.reason === 'exists' || wordExists) reasonText = 'GONE';
-                mintInfoBox.innerHTML = `<div>word</div><div>is</div><div><span class="highlight info-highlight">${reasonText}</span></div>`;
-                mintBar.appendChild(mintInfoBox);
-                mintBtn.classList.add('mint-strikethrough');
+                updateValidationUI(validation);
             } else {
                 highlight.textContent = newWord;
                 mintClicked = false;
                 lastMintedWord = null;
-                if (mintInfoBox) {
-                    mintBar.removeChild(mintInfoBox);
-                    mintInfoBox = null;
-                }
-                mintBtn.classList.remove('mint-strikethrough');
-                mintBtn.disabled = false;
-                mintBtn.classList.remove('mint-disabled');
+                updateValidationUI(validation);
             }
-            input.classList.add('hide');
-            input.addEventListener('transitionend', function handler() {
-                if (input && input.parentNode) input.parentNode.removeChild(input);
-                highlight.style.display = '';
-                input.removeEventListener('transitionend', handler);
-            });
-            editIcon.innerHTML = editSVG;
+            // Entferne das Input-Feld komplett aus dem DOM
+            if (input && input.parentNode) {
+                input.parentNode.removeChild(input);
+            }
+            highlight.style.display = '';
             isEditing = false;
         }
     });
@@ -435,6 +482,18 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             "stateMutability": "view",
             "type": "function"
+        },
+        // Getter für usedWords
+        {
+            "inputs": [
+                { "internalType": "string", "name": "", "type": "string" }
+            ],
+            "name": "usedWords",
+            "outputs": [
+                { "internalType": "bool", "name": "", "type": "bool" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         }
     ];
 
@@ -453,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Get next token ID
             const nextId = await contract.nextTokenId();
-            
+            console.log('nextTokenId:', nextId.toString());
             // Update counter
             if (nextId === 1n) {
                 counter.textContent = '#0';
@@ -468,9 +527,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (nextId > 1n) {
                 const lastTokenId = nextId - 1n;
                 const tokenUri = await contract.tokenURI(lastTokenId);
+                console.log('lastTokenId:', lastTokenId.toString());
+                console.log('tokenUri:', tokenUri);
                 const json = atob(tokenUri.split(",")[1]);
                 const meta = JSON.parse(json);
-                
+                console.log('meta:', meta);
                 // Extract attributes
                 let tendency = null, expression = null;
                 if (meta.attributes && Array.isArray(meta.attributes)) {
@@ -479,7 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (attr.trait_type === 'Expression') expression = attr.value;
                     }
                 }
-                
                 // Update UI
                 if (tendency && toggleText) toggleText.textContent = tendency;
                 if (expression && highlight) highlight.textContent = expression;
