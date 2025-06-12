@@ -23,7 +23,7 @@ contract WordOfChoice is ERC721, Ownable {
 
     // State variables
     uint256 public nextTokenId = 1;
-    uint256 public mintPrice = 0.001 ether;
+    uint256 public mintPrice = 0.01 ether;
     mapping(uint256 => Expression) public expressions;
     mapping(string => bool) public usedWords; // Track used words to prevent duplicates
 
@@ -177,14 +177,11 @@ contract WordOfChoice is ERC721, Ownable {
         return string(abi.encodePacked(svg1, svg2, svg3, svg4, svg5, '</svg>'));
     }
 
-    /**
-     * @dev Formats a timestamp into a readable date string
-     */
-    function _formatTimestamp(uint256 timestamp) internal pure returns (string memory) {
-        // Simple date formatting (can be expanded if needed)
-        return string(abi.encodePacked(
-            (timestamp / 86400 + 1).toString(), // Days since epoch
-            " days since genesis"
-        ));
+    // --- Royalties (ERC2981) ---
+    function royaltyInfo(uint256, uint256 salePrice) external view returns (address receiver, uint256 royaltyAmount) {
+        return (owner(), salePrice / 10); // 10% Royalties
+    }
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == 0x2a55205a || super.supportsInterface(interfaceId);
     }
 } 
