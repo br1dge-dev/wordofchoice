@@ -10,9 +10,6 @@ async function main() {
 
   // Verify contract on BaseScan
   if (process.env.BASESCAN_API_KEY) {
-    console.log("Waiting for block confirmations...");
-    await wordOfChoice.deployTransaction.wait(5); // Wait for 5 block confirmations
-
     console.log("Verifying contract on BaseScan...");
     try {
       await hre.run("verify:verify", {

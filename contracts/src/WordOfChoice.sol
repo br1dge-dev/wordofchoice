@@ -23,7 +23,7 @@ contract WordOfChoice is ERC721, Ownable {
 
     // State variables
     uint256 public nextTokenId = 1;
-    uint256 public mintPrice = 0.01 ether;
+    uint256 public mintPrice = 0.0001 ether;
     mapping(uint256 => Expression) public expressions;
     mapping(string => bool) public usedWords; // Track used words to prevent duplicates
 
@@ -32,7 +32,8 @@ contract WordOfChoice is ERC721, Ownable {
     event MintPriceChanged(uint256 newPrice);
 
     // Errors
-    error InvalidWord();
+    error WordEmptyOrTooLong();
+    error WordHasInvalidChars();
     error WordAlreadyUsed();
     error InsufficientPayment();
     error InvalidTokenId();
@@ -49,7 +50,11 @@ contract WordOfChoice is ERC721, Ownable {
      */
     function express(bool isBest, string memory word) external payable {
         if (msg.value < mintPrice) revert InsufficientPayment();
-        if (!_validateWord(word)) revert InvalidWord();
+        bytes memory b = bytes(word);
+        if (b.length == 0 || b.length > 8) revert WordEmptyOrTooLong();
+        for (uint256 i = 0; i < b.length; i++) {
+            if (b[i] < 0x41 || b[i] > 0x5A) revert WordHasInvalidChars(); // A-Z
+        }
         if (usedWords[word]) revert WordAlreadyUsed();
 
         uint256 tokenId = nextTokenId++;
@@ -76,20 +81,6 @@ contract WordOfChoice is ERC721, Ownable {
      */
     function withdraw() external onlyOwner {
         payable(owner()).transfer(address(this).balance);
-    }
-
-    /**
-     * @dev Validates a word (8 chars max, A-Z only)
-     * @param word The word to validate
-     * @return bool Whether the word is valid
-     */
-    function _validateWord(string memory word) internal pure returns (bool) {
-        bytes memory b = bytes(word);
-        if (b.length == 0 || b.length > 8) return false;
-        for (uint256 i = 0; i < b.length; i++) {
-            if (b[i] < 0x41 || b[i] > 0x5A) return false; // A-Z
-        }
-        return true;
     }
 
     /**
@@ -166,7 +157,7 @@ contract WordOfChoice is ERC721, Ownable {
             '<g>',
             '<text x="130" y="312" font-size="40" fill="', colorFg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="end">',
             '<tspan font-weight="bold" text-decoration="underline">life</tspan> is</text>',
-            '<rect x="140" y="266" width="340" height="64" rx="11" fill="', colorFg, '"/>',
+            '<rect x="135" y="266" width="350" height="64" rx="11" fill="', colorFg, '"/>',
             '<text x="310" y="298" font-size="56" fill="', colorBg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">', word, '</text>',
             '</g>'
         ));
