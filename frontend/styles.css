@@ -303,6 +303,68 @@ body.toggled .edit-button {
         max-width: 36px !important;
         max-height: 36px !important;
     }
+    .mobile-headline {
+        text-align: center;
+        margin-top: 2.5em;
+    }
+    .mobile-headline .headline-word,
+    .mobile-headline .toggle-text,
+    .mobile-headline .highlight {
+        font-size: 2.2rem !important;
+        font-weight: bold;
+        line-height: 1.13;
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .mobile-headline .highlight {
+        font-size: 2.7rem !important;
+        padding: 0.08em 0.3em;
+        border-radius: 0.2em;
+        min-width: 2.5em;
+        min-height: 1.2em;
+        text-align: center;
+        line-height: 1.1;
+        margin-top: 0.2em;
+    }
+    .mobile-headline .toggle-button,
+    .mobile-headline .edit-button {
+        font-size: 2rem;
+        min-width: 48px;
+        min-height: 48px;
+        max-width: 80px;
+        max-height: 80px;
+        border-radius: 0.2em;
+        margin: 0 0.12em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #F5E9D4;
+        color: #2C241B;
+        box-shadow: 0 2px 8px rgba(44,36,27,0.08);
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s, color 0.3s, transform 0.2s;
+    }
+    body.toggled .mobile-headline .toggle-button,
+    body.toggled .mobile-headline .edit-button {
+        background: #2C241B;
+        color: #F5E9D4;
+    }
+    .mobile-headline .toggle-button svg,
+    .mobile-headline .edit-button svg {
+        width: 2.1rem !important;
+        height: 2.1rem !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        max-width: 36px !important;
+        max-height: 36px !important;
+        display: block;
+        margin: 0 auto;
+    }
+    .mobile-headline .edit-button {
+        margin-top: 0.7em;
+    }
 }
 @media (min-width: 1200px) {
     .edit-button svg {

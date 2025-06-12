@@ -598,4 +598,88 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
     // --- Ende Integration ---
+
+    // --- Mobile Headline Support ---
+    const mobileHeadline = document.querySelector('.mobile-headline');
+    const highlightMobile = document.getElementById('highlight-word-mobile');
+    const editBtnMobile = document.getElementById('edit-btn-mobile');
+    const editIconMobile = document.getElementById('edit-icon-mobile');
+    const toggleTextMobile = mobileHeadline ? mobileHeadline.querySelector('.toggle-text') : null;
+    const toggleButtonMobile = mobileHeadline ? mobileHeadline.querySelector('.toggle-button') : null;
+
+    // Toggle-Button für Mobile
+    if (toggleButtonMobile && toggleTextMobile) {
+        toggleButtonMobile.addEventListener('click', () => {
+            toggleTextMobile.classList.add('strikethrough');
+            setTimeout(() => {
+                if (toggleTextMobile.textContent === 'worst') {
+                    toggleTextMobile.textContent = 'best';
+                    body.classList.add('toggled');
+                } else {
+                    toggleTextMobile.textContent = 'worst';
+                    body.classList.remove('toggled');
+                }
+                toggleTextMobile.classList.remove('strikethrough');
+            }, 300);
+        });
+    }
+
+    // Edit/Save für Mobile
+    if (editBtnMobile && highlightMobile && editIconMobile) {
+        editIconMobile.innerHTML = editSVG; // Immer initial das Edit-Icon setzen
+        editBtnMobile.addEventListener('click', async () => {
+            if (isEditing) return;
+            isEditing = true;
+            editIconMobile.innerHTML = saveSVG;
+            input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 8;
+            input.className = 'edit-input';
+            input.value = '';
+            input.placeholder = 'insert word';
+            input.setAttribute('aria-label', 'Edit word');
+            input.style.textTransform = 'uppercase';
+            highlightMobile.style.display = 'none';
+            // Füge das Input-Feld nach dem Highlight ein
+            highlightMobile.parentNode.insertBefore(input, highlightMobile.nextSibling);
+            input.focus();
+            input.addEventListener('input', async () => {
+                input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
+                const validation = await validateInput(input.value);
+                updateValidationUI(validation);
+            });
+            input.addEventListener('keydown', async (e) => {
+                if (e.key === 'Enter') {
+                    await saveEditInputMobile();
+                }
+            });
+            input.addEventListener('blur', async () => {
+                await saveEditInputMobile();
+            });
+        });
+        async function saveEditInputMobile() {
+            let newWord = input.value.trim().toUpperCase();
+            const validation = await validateInput(newWord);
+            if (!validation.feedback.valid) {
+                highlightMobile.style.display = '';
+                if (validation.state === ValidationState.EMPTY) {
+                    highlightMobile.textContent = 'ʕ◔ϖ◔ʔ';
+                } else {
+                    highlightMobile.textContent = newWord || 'ʕ◔ϖ◔ʔ';
+                }
+                updateValidationUI(validation);
+            } else {
+                highlightMobile.textContent = newWord;
+                mintClicked = false;
+                lastMintedWord = null;
+                updateValidationUI(validation);
+            }
+            if (input && input.parentNode) {
+                input.parentNode.removeChild(input);
+            }
+            highlightMobile.style.display = '';
+            editIconMobile.innerHTML = editSVG; // Nach dem Speichern wieder das Edit-Icon anzeigen
+            isEditing = false;
+        }
+    }
 }); 
