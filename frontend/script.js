@@ -126,6 +126,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return { valid: true };
     }
 
+    // --- Wort-Existenz-Check am Contract ---
+    async function checkWordExists(word) {
+        try {
+            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+            const contract = new ethers.Contract(contractAddress, contractABI, provider);
+            // usedWords ist public, daher automatisch ein Getter
+            return await contract.usedWords(word);
+        } catch (e) {
+            console.error('Fehler beim Check auf usedWords:', e);
+            return false;
+        }
+    }
+
     // Edit/Save functionality for Desktop
     editBtn.addEventListener('click', async () => {
         if (!isEditing) {
@@ -157,7 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
         async function saveEditInput() {
             let newWord = input.value.trim().toUpperCase();
             const validation = await validateWord(newWord);
-            if (!validation.valid) {
+            let wordExists = false;
+            if (validation.valid) {
+                wordExists = await checkWordExists(newWord);
+            }
+            if (!validation.valid || wordExists) {
                 highlight.style.display = '';
                 highlight.textContent = 'ʕ◔ϖ◔ʔ';
                 mintBtn.disabled = true;
@@ -170,8 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 mintInfoBox.className = 'mint-info-box';
                 let reasonText = 'INVALID';
                 if (validation.reason === 'empty') reasonText = 'INVALID';
-                if (validation.reason === 'invalid_chars') reasonText = 'INVALID CHARS';
-                if (validation.reason === 'exists') reasonText = 'ALREADY EXISTS';
+                if (validation.reason === 'invalid_chars') reasonText = 'has INVALID CHARS';
+                if (validation.reason === 'exists' || wordExists) reasonText = 'GONE';
                 mintInfoBox.innerHTML = `<div>word</div><div>is</div><div><span class="highlight info-highlight">${reasonText}</span></div>`;
                 mintBar.appendChild(mintInfoBox);
                 mintBtn.classList.add('mint-strikethrough');
@@ -232,114 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setTimeout(startWiggleLoop, 1000); // Start after 1s page load
 
-    // --- Mobile Headline Logik: Edit und Highlight synchronisieren ---
-    const highlightMobile = document.getElementById('highlight-word-mobile');
-    const editBtnMobile = document.getElementById('edit-btn-mobile');
-    const editIconMobile = document.getElementById('edit-icon-mobile');
-    let isEditingMobile = false;
-    let inputMobile;
-
-    function syncHighlightWord(word) {
-        if (highlight) highlight.textContent = word;
-        if (highlightMobile) highlightMobile.textContent = word;
-    }
-
-    if (editBtnMobile) {
-        editBtnMobile.addEventListener('click', async () => {
-            if (!isEditingMobile) {
-                isEditingMobile = true;
-                editIconMobile.innerHTML = saveSVG;
-                inputMobile = document.createElement('input');
-                inputMobile.type = 'text';
-                inputMobile.maxLength = 8;
-                inputMobile.className = 'edit-input';
-                inputMobile.value = '';
-                inputMobile.placeholder = 'insert word';
-                inputMobile.setAttribute('aria-label', 'Edit word');
-                inputMobile.style.textTransform = 'uppercase';
-                highlightMobile.style.display = 'none';
-                highlightMobile.parentNode.insertBefore(inputMobile, editBtnMobile);
-                inputMobile.focus();
-                inputMobile.addEventListener('input', () => {
-                    inputMobile.value = inputMobile.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
-                });
-                const toggleButtonMobile = document.querySelector('.mobile-headline .toggle-button');
-                if (toggleButtonMobile) {
-                    toggleButtonMobile.onclick = () => {
-                        toggleText.classList.add('strikethrough');
-                        setTimeout(() => {
-                            body.classList.toggle('toggled');
-                            if (toggleText.textContent === 'worst') {
-                                toggleText.textContent = 'best';
-                            } else {
-                                toggleText.textContent = 'worst';
-                            }
-                            if (isEditingMobile && inputMobile) {
-                                if (inputMobile.value.trim().toUpperCase() === 'WORST') {
-                                    inputMobile.value = 'BEST';
-                                } else if (inputMobile.value.trim().toUpperCase() === 'BEST') {
-                                    inputMobile.value = 'WORST';
-                                }
-                            } else {
-                                if (highlightMobile.textContent.trim().toUpperCase() === 'WORST') {
-                                    highlightMobile.textContent = 'BEST';
-                                } else if (highlightMobile.textContent.trim().toUpperCase() === 'BEST') {
-                                    highlightMobile.textContent = 'WORST';
-                                }
-                            }
-                            toggleText.classList.remove('strikethrough');
-                        }, 300);
-                    };
-                }
-            } else {
-                // Speichern
-                let newWord = inputMobile.value.trim().toUpperCase();
-                const validation = await validateWord(newWord);
-                if (!validation.valid) {
-                    syncHighlightWord('ʕ◔ϖ◔ʔ');
-                    mintBtn.disabled = true;
-                    mintBtn.classList.add('mint-disabled');
-                    if (mintInfoBox) {
-                        mintBar.removeChild(mintInfoBox);
-                        mintInfoBox = null;
-                    }
-                    mintInfoBox = document.createElement('div');
-                    mintInfoBox.className = 'mint-info-box';
-                    let reasonText = 'INVALID';
-                    if (validation.reason === 'empty') reasonText = 'INVALID';
-                    if (validation.reason === 'invalid_chars') reasonText = 'INVALID CHARS';
-                    if (validation.reason === 'exists') reasonText = 'ALREADY EXISTS';
-                    mintInfoBox.innerHTML = `<div>word</div><div>is</div><div><span class=\"highlight info-highlight\">${reasonText}</span></div>`;
-                    mintBar.appendChild(mintInfoBox);
-                    mintBtn.classList.add('mint-strikethrough');
-                } else {
-                    syncHighlightWord(newWord);
-                    mintClicked = false;
-                    lastMintedWord = null;
-                    if (mintInfoBox) {
-                        mintBar.removeChild(mintInfoBox);
-                        mintInfoBox = null;
-                    }
-                    mintBtn.classList.remove('mint-strikethrough');
-                    mintBtn.disabled = false;
-                    mintBtn.classList.remove('mint-disabled');
-                }
-                inputMobile.classList.add('hide');
-                setTimeout(() => {
-                    if (inputMobile && inputMobile.parentNode) inputMobile.parentNode.removeChild(inputMobile);
-                    highlightMobile.style.display = '';
-                }, 300);
-                editIconMobile.innerHTML = editSVG;
-                isEditingMobile = false;
-            }
-        });
-    }
-
-    // Synchronisiere Highlight-Word initial
-    if (highlight && highlightMobile) {
-        highlightMobile.textContent = highlight.textContent;
-    }
-
     // Wallet Connection State
     let isConnected = false;
     let currentAccount = null;
@@ -380,6 +289,26 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModalFunc();
         }
     });
+
+    // Initial wallet check
+    async function checkWalletConnection() {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    currentAccount = accounts[0];
+                    isConnected = true;
+                    mintBtn.textContent = 'MINT';
+                    walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
+                }
+            } catch (error) {
+                console.error('Error checking wallet connection:', error);
+            }
+        }
+    }
+
+    // Call initial check
+    checkWalletConnection();
 
     // MetaMask Connection
     async function connectWallet() {
@@ -444,10 +373,14 @@ document.addEventListener('DOMContentLoaded', () => {
             currentAccount = null;
             mintBtn.textContent = 'CONNECT';
             walletStatus.textContent = '';
+            closeModalFunc();
         } else {
             // Account changed
             currentAccount = accounts[0];
+            isConnected = true;
+            mintBtn.textContent = 'MINT';
             walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
+            closeModalFunc();
         }
     }
 
@@ -459,42 +392,17 @@ document.addEventListener('DOMContentLoaded', () => {
             walletStatus.textContent = 'Please switch to BASE Sepolia Testnet in your wallet.';
             openModal();
         } else {
+            isConnected = true;
+            mintBtn.textContent = 'MINT';
             walletStatus.textContent = '';
+            closeModalFunc();
         }
     }
 
     connectWalletBtn.addEventListener('click', connectWallet);
 
-    async function checkInitialWalletConnection() {
-        if (typeof window.ethereum !== 'undefined') {
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                if (accounts.length > 0 && chainId === BASE_SEPOLIA_PARAMS.chainId) {
-                    isConnected = true;
-                    currentAccount = accounts[0];
-                    mintBtn.textContent = 'MINT';
-                } else {
-                    isConnected = false;
-                    currentAccount = null;
-                    mintBtn.textContent = 'CONNECT';
-                }
-            } catch (e) {
-                // Ignorieren
-            }
-        }
-    }
-
-    checkInitialWalletConnection().then(() => {
-        if (isConnected) {
-            fetchNextTokenId();
-        }
-    });
-
-    // --- WordOfChoice Contract Integration ---
-
     // 1. Contract address
-    const contractAddress = "0x1a5541569761c0F60e48F6f18845e923873429B0";
+    const contractAddress = "0x2e9B36d96Fb9Aa9aB2820b7D290bBDAC1E82BA51";
 
     // 2. Contract ABI (only relevant functions)
     const contractABI = [
@@ -530,18 +438,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
-    // Fetch next token ID from contract
-    async function fetchNextTokenId() {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const contract = new ethers.Contract(contractAddress, contractABI, provider);
+    // Direkt beim Pageload: Token ID, Tendency und Expression anzeigen
+    fetchAndDisplayLatestTokenInfo();
+
+    async function fetchAndDisplayLatestTokenInfo() {
         try {
+            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+            const contract = new ethers.Contract(contractAddress, contractABI, provider);
+            
+            // Clear existing interval
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+            }
+
+            // Get next token ID
             const nextId = await contract.nextTokenId();
-            clearInterval(loadingInterval);
-            counter.textContent = `#${nextId}`;
-        } catch (e) {
-            console.error('Error fetching next token ID:', e);
+            
+            // Update counter
+            if (nextId === 1n) {
+                counter.textContent = '#0';
+                if (toggleText) toggleText.textContent = 'NOWORD';
+                if (highlight) highlight.textContent = 'NOWORD';
+                return;
+            } else {
+                counter.textContent = `#${(nextId - 1n).toString()}`;
+            }
+
+            // Get latest token data if exists
+            if (nextId > 1n) {
+                const lastTokenId = nextId - 1n;
+                const tokenUri = await contract.tokenURI(lastTokenId);
+                const json = atob(tokenUri.split(",")[1]);
+                const meta = JSON.parse(json);
+                
+                // Extract attributes
+                let tendency = null, expression = null;
+                if (meta.attributes && Array.isArray(meta.attributes)) {
+                    for (const attr of meta.attributes) {
+                        if (attr.trait_type === 'Tendency') tendency = attr.value;
+                        if (attr.trait_type === 'Expression') expression = attr.value;
+                    }
+                }
+                
+                // Update UI
+                if (tendency && toggleText) toggleText.textContent = tendency;
+                if (expression && highlight) highlight.textContent = expression;
+            }
+        } catch (error) {
+            console.error('Error fetching token info:', error);
+            // Keep the loading animation if there's an error
+            if (!loadingInterval) {
+                loadingInterval = setInterval(() => {
+                    counter.textContent = '#' + animalFrames[animalIndex];
+                    animalIndex = (animalIndex + 1) % animalFrames.length;
+                }, 400);
+            }
         }
     }
+
+    // --- WordOfChoice Contract Integration ---
 
     // 3. Mint-Funktion
     async function mintExpression(isBest, word) {
@@ -556,12 +511,12 @@ document.addEventListener('DOMContentLoaded', () => {
             contractABI,
             signer
         );
-        const value = ethers.parseEther("0.001");
+        const value = ethers.parseEther("0.01");
         try {
             const tx = await contract.express(isBest, word, { value });
             await tx.wait();
             alert("NFT successfully minted!");
-            await fetchNextTokenId();
+            await fetchAndDisplayLatestTokenInfo();
         } catch (err) {
             alert("Error minting: " + (err.info?.error?.message || err.message));
         }

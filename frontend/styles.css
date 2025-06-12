@@ -383,6 +383,11 @@ body.toggled .edit-input {
     transition: color 0.5s, text-decoration 0.5s, opacity 0.5s;
 }
 
+.toggle-text .emoji {
+    font-size: 0.8em;
+    vertical-align: middle;
+}
+
 .counter-bar {
     position: absolute;
     top: 2vw;
@@ -1095,5 +1100,8 @@ body.toggled .wallet-btn:hover {
     padding: 0.15em 0.45em;
     min-width: 2em;
     min-height: 1em;
+  }
+  .toggle-button span {
+    font-size: 0.8em;
   }
 } 
