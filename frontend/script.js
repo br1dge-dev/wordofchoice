@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let mintInfoBox = null;
     let mintClicked = false;
     let lastMintedWord = null;
+    let isMinting = false;
 
     // --- Confirmation Modal ---
     const confirmationModal = document.getElementById('confirmationModal');
@@ -203,8 +204,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     confirmMintBtn.addEventListener('click', async () => {
         if (pendingMint) {
-            await mintExpression(pendingMint.isBest, pendingMint.word);
-            closeConfirmationModal();
+            // Werte merken, bevor das Modal geschlossen wird
+            const mintParams = pendingMint;
+            closeConfirmationModal(); // Modal schließen, pendingMint wird auf null gesetzt
+            isMinting = true;
+
+            // Starte Animationen
+            startIdleCounter();
+            let expressionInterval = setInterval(() => {
+                if (highlight) highlight.textContent = animalFrames[animalIndex];
+                if (highlightMobile) highlightMobile.textContent = animalFrames[animalIndex];
+            }, 400);
+
+            try {
+                // Mint durchführen (inkl. Wallet-Interaktion)
+                await mintExpression(mintParams.isBest, mintParams.word);
+
+                // Nach erfolgreicher Bestätigung: Neue Werte anzeigen
+                clearInterval(expressionInterval);
+                isMinting = false;
+                await fetchAndDisplayLatestTokenInfo();
+            } catch (error) {
+                clearInterval(expressionInterval);
+                isMinting = false;
+                console.error('Mint failed:', error);
+            }
         }
     });
 
