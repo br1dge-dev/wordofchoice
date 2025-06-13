@@ -1,4 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- ALLE DOM-Elemente direkt am Anfang deklarieren ---
+    const body = document.body;
+    const toggleButton = document.querySelector('.toggle-button');
+    const toggleText = document.querySelector('.toggle-text');
+    const highlight = document.getElementById('highlight-word');
+    const editBtn = document.getElementById('edit-btn');
+    const editIcon = document.getElementById('edit-icon');
+    const counter = document.getElementById('counter');
+    const mintBtn = document.querySelector('.mint-btn');
+    const mintBar = document.querySelector('.mint-bar');
+    // Mobile-Elemente
+    const toggleButtonMobile = document.querySelector('.mobile-headline .toggle-button');
+    const toggleTextMobile = document.querySelector('.mobile-headline .toggle-text');
+    const highlightMobile = document.getElementById('highlight-word-mobile');
+    const editBtnMobile = document.getElementById('edit-btn-mobile');
+    const editIconMobile = document.getElementById('edit-icon-mobile');
+    // Buttons-Array erst nach allen Deklarationen
+    const allButtons = [toggleButton, editBtn, mintBtn];
+    if (toggleButtonMobile) allButtons.push(toggleButtonMobile);
+    if (editBtnMobile) allButtons.push(editBtnMobile);
+
     // Zentrale Validierungslogik
     const ValidationState = {
         VALID: 'valid',
@@ -89,13 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const body = document.body;
-    const toggleButton = document.querySelector('.toggle-button');
-    const toggleText = document.querySelector('.toggle-text');
-    const highlight = document.getElementById('highlight-word');
-    const editBtn = document.getElementById('edit-btn');
-    const editIcon = document.getElementById('edit-icon');
-    const counter = document.getElementById('counter');
     let isEditing = false;
     let input;
     let count = 1;
@@ -107,10 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'ʕ◵ᴥ◵ʔ'
     ];
     let animalIndex = 0;
-    let loadingInterval = setInterval(() => {
-        counter.textContent = '#' + animalFrames[animalIndex];
-        animalIndex = (animalIndex + 1) % animalFrames.length;
-    }, 400);
 
     const editSVG = `<svg id=\"edit-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><path d=\"M20 12H7M11 8l-4 4 4 4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
     const saveSVG = `<svg id=\"save-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><rect x=\"8\" y=\"16\" width=\"8\" height=\"2\" fill=\"currentColor\"/><rect x=\"8\" y=\"8\" width=\"8\" height=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>`;
@@ -119,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialTendency = null;
     let initialExpression = null;
     let isIdle = false;
+    let loadingInterval = null; // Idle-Interval für Counter global deklarieren
     function startIdleCounter() {
         if (loadingInterval) clearInterval(loadingInterval);
         isIdle = true;
@@ -132,6 +143,81 @@ document.addEventListener('DOMContentLoaded', () => {
         isIdle = false;
         counter.textContent = `#${tokenId}`;
     }
+
+    // Hilfsfunktion, um nextTokenId vom Contract zu holen und Counter zu setzen
+    async function showNextTokenIdPlusOne() {
+        try {
+            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+            const contract = new ethers.Contract(contractAddress, contractABI, provider);
+            const nextId = await contract.nextTokenId();
+            const currentId = Number(nextId) - 1;
+            counter.textContent = `#${currentId} +1`;
+        } catch (e) {
+            counter.textContent = '#? +1';
+        }
+    }
+
+    // Edit/Save functionality für Desktop
+    editBtn.addEventListener('click', async () => {
+        if (!isEditing) {
+            isEditing = true;
+            editIcon.innerHTML = saveSVG;
+            input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 8;
+            input.className = 'edit-input';
+            input.value = '';
+            input.placeholder = 'insert word';
+            input.setAttribute('aria-label', 'Edit word');
+            input.style.textTransform = 'uppercase';
+            highlight.style.display = 'none';
+            highlight.parentNode.insertBefore(input, editBtn);
+            input.focus();
+            // --- Counter zeigt #<nextTokenId> +1 während Edit ---
+            showNextTokenIdPlusOne();
+            input.addEventListener('input', async () => {
+                input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
+                // Live-Validierung
+                const validation = await validateInput(input.value);
+                updateValidationUI(validation);
+            });
+            input.addEventListener('keydown', async (e) => {
+                if (e.key === 'Enter') {
+                    await saveEditInput();
+                }
+            });
+            input.addEventListener('blur', async () => {
+                await saveEditInput();
+            });
+        }
+        async function saveEditInput() {
+            let newWord = input.value.trim().toUpperCase();
+            const validation = await validateInput(newWord);
+            if (!validation.feedback.valid) {
+                highlight.style.display = '';
+                if (validation.state === ValidationState.EMPTY) {
+                    highlight.textContent = 'ʕ◔ϖ◔ʔ';
+                } else {
+                    highlight.textContent = newWord || 'ʕ◔ϖ◔ʔ';
+                }
+                updateValidationUI(validation);
+            } else {
+                highlight.textContent = newWord;
+                mintClicked = false;
+                lastMintedWord = null;
+                updateValidationUI(validation);
+            }
+            // Entferne das Input-Feld komplett aus dem DOM
+            if (input && input.parentNode) {
+                input.parentNode.removeChild(input);
+            }
+            highlight.style.display = '';
+            isEditing = false;
+            setTimeout(() => {
+                // Nach Edit: Counter bleibt auf #<nextTokenId> +1 bis echte Daten geladen werden
+            }, 350);
+        }
+    });
 
     // Toggle dark/light mode
     toggleButton.addEventListener('click', () => {
@@ -161,6 +247,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     highlight.textContent = 'WORST';
                 }
             }
+            // --- Counter zeigt #<nextTokenId> +1 nach Toggle ---
+            showNextTokenIdPlusOne();
             toggleText.classList.remove('strikethrough');
         }, 300);
     });
@@ -169,8 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let wordInterval = null;
 
     // Mint button functionality
-    const mintBtn = document.querySelector('.mint-btn');
-    const mintBar = document.querySelector('.mint-bar');
     let mintInfoBox = null;
     let mintClicked = false;
     let lastMintedWord = null;
@@ -223,7 +309,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Nach erfolgreicher Bestätigung: Neue Werte anzeigen
                 clearInterval(expressionInterval);
                 isMinting = false;
-                await fetchAndDisplayLatestTokenInfo();
+                const tokenInfo = await fetchLatestTokenInfo();
+                updateUIWithTokenInfo(tokenInfo);
+                // --- Idle-Animation nach Mint garantiert stoppen ---
+                if (tokenInfo && tokenInfo.tokenId !== undefined) {
+                    stopIdleCounter(tokenInfo.tokenId);
+                }
             } catch (error) {
                 clearInterval(expressionInterval);
                 isMinting = false;
@@ -235,77 +326,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Mint button functionality (adapted) ---
     mintBtn.addEventListener('click', async () => {
         if (mintBtn.disabled) return;
+        const word = highlight.textContent.trim();
+        // Prüfe synchron, ob das Wort vergeben ist
+        const validationResult = await validateInput(word);
+        if (validationResult.state === 'WORD_EXISTS') {
+            updateValidationUI(validationResult);
+            return; // Modal NICHT öffnen
+        }
         if (!isConnected) {
             openModal();
         } else {
             const isBest = (toggleText.textContent.trim().toLowerCase() === 'best');
-            const word = highlight.textContent.trim();
             // Satz immer zweizeilig
             const headline = isBest ? 'The best thing in' : 'The worst thing in';
             const sentence = `${headline}\nlife is ${word}`;
             const price = '0.01';
             openConfirmationModal(sentence, price, { isBest, word });
-        }
-    });
-
-    // Edit/Save functionality for Desktop
-    editBtn.addEventListener('click', async () => {
-        if (!isEditing) {
-            isEditing = true;
-            editIcon.innerHTML = saveSVG;
-            input = document.createElement('input');
-            input.type = 'text';
-            input.maxLength = 8;
-            input.className = 'edit-input';
-            input.value = '';
-            input.placeholder = 'insert word';
-            input.setAttribute('aria-label', 'Edit word');
-            input.style.textTransform = 'uppercase';
-            highlight.style.display = 'none';
-            highlight.parentNode.insertBefore(input, editBtn);
-            input.focus();
-            input.addEventListener('input', async () => {
-                input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
-                // Live-Validierung
-                const validation = await validateInput(input.value);
-                updateValidationUI(validation);
-            });
-            input.addEventListener('keydown', async (e) => {
-                if (e.key === 'Enter') {
-                    await saveEditInput();
-                }
-            });
-            input.addEventListener('blur', async () => {
-                await saveEditInput();
-            });
-        }
-        async function saveEditInput() {
-            let newWord = input.value.trim().toUpperCase();
-            const validation = await validateInput(newWord);
-            if (!validation.feedback.valid) {
-                highlight.style.display = '';
-                if (validation.state === ValidationState.EMPTY) {
-                    highlight.textContent = 'ʕ◔ϖ◔ʔ';
-                } else {
-                    highlight.textContent = newWord || 'ʕ◔ϖ◔ʔ';
-                }
-                updateValidationUI(validation);
-            } else {
-                highlight.textContent = newWord;
-                mintClicked = false;
-                lastMintedWord = null;
-                updateValidationUI(validation);
-            }
-            // Entferne das Input-Feld komplett aus dem DOM
-            if (input && input.parentNode) {
-                input.parentNode.removeChild(input);
-            }
-            highlight.style.display = '';
-            isEditing = false;
-            setTimeout(() => {
-                if (!isIdle && !isInitialState()) startIdleCounter();
-                else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
-            }, 350);
         }
     });
 
@@ -545,79 +581,121 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // Direkt beim Pageload: Token ID, Tendency und Expression anzeigen
-    fetchAndDisplayLatestTokenInfo();
+    // fetchAndDisplayLatestTokenInfo();
 
-    async function fetchAndDisplayLatestTokenInfo() {
+    // Neue Funktionen für getrennte Datenabfrage und UI-Update
+    async function fetchLatestTokenInfo() {
         try {
             const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
             const contract = new ethers.Contract(contractAddress, contractABI, provider);
             
-            // Clear existing interval
-            if (loadingInterval) {
-                clearInterval(loadingInterval);
-            }
-
             // Get next token ID
             const nextId = await contract.nextTokenId();
-            console.log('nextTokenId:', nextId.toString());
-            // Update counter
+            
+            let tokenId = 0;
+            let tendency = '?';
+            let expression = 'CHOICE';
+
             if (nextId === 1n) {
-                counter.textContent = '#0';
-                if (toggleText) toggleText.textContent = '?';
-                if (highlight) highlight.textContent = 'CHOICE';
-                initialTendency = '?';
-                initialExpression = 'CHOICE';
-                return;
+                return { tokenId, tendency, expression };
             } else {
-                counter.textContent = `#${(nextId - 1n).toString()}`;
+                tokenId = Number(nextId - 1n);
             }
 
             // Get latest token data if exists
             if (nextId > 1n) {
                 const lastTokenId = nextId - 1n;
                 const tokenUri = await contract.tokenURI(lastTokenId);
-                console.log('lastTokenId:', lastTokenId.toString());
-                console.log('tokenUri:', tokenUri);
                 const json = atob(tokenUri.split(",")[1]);
                 const meta = JSON.parse(json);
-                console.log('meta:', meta);
                 // Extract attributes
-                let tendency = null, expression = null;
                 if (meta.attributes && Array.isArray(meta.attributes)) {
                     for (const attr of meta.attributes) {
                         if (attr.trait_type === 'Tendency') tendency = attr.value;
                         if (attr.trait_type === 'Expression') expression = attr.value;
                     }
                 }
-                // Update UI
-                if (tendency && toggleText) toggleText.textContent = tendency;
-                if (expression && highlight) highlight.textContent = expression;
-                initialTendency = tendency;
-                initialExpression = expression;
-                // Theme-Synchronisierung
-                if (tendency) {
-                    if (tendency.toLowerCase() === 'best') {
-                        document.body.classList.add('toggled');
-                    } else {
-                        document.body.classList.remove('toggled');
-                    }
-                }
             }
+            return { tokenId, tendency, expression };
         } catch (error) {
             console.error('Error fetching token info:', error);
-            // Keep the loading animation if there's an error
-            if (!loadingInterval) {
-                loadingInterval = setInterval(() => {
-                    counter.textContent = '#' + animalFrames[animalIndex];
-                    animalIndex = (animalIndex + 1) % animalFrames.length;
-                }, 400);
-            }
+            return null;
         }
     }
 
-    // --- WordOfChoice Contract Integration ---
+    function updateUIWithTokenInfo(tokenInfo) {
+        if (!tokenInfo) return;
+        
+        const { tokenId, tendency, expression } = tokenInfo;
+        
+        // Update counter
+        counter.textContent = `#${tokenId}`;
+        
+        // Update UI elements
+        if (toggleText) toggleText.textContent = tendency;
+        if (highlight) highlight.textContent = expression;
+        if (highlightMobile) highlightMobile.textContent = expression;
+        
+        // Update initial state
+        initialTendency = tendency;
+        initialExpression = expression;
+        
+        // Theme-Synchronisierung
+        if (tendency) {
+            if (tendency.toLowerCase() === 'best') {
+                document.body.classList.add('toggled');
+            } else {
+                document.body.classList.remove('toggled');
+            }
+        }
 
-    // 3. Mint-Funktion
+        // --- Idle-Animation nach jedem UI-Update stoppen ---
+        if (tokenId !== undefined) {
+            stopIdleCounter(tokenId);
+        }
+
+        // --- NEU: Nach jedem Laden prüfen, ob das Wort vergeben ist ---
+        // Nur prüfen, wenn der Mint-Button auf 'MINT' steht
+        if (mintBtn.textContent.trim().toUpperCase() === 'MINT') {
+            validateInput(expression).then(validationResult => {
+                updateValidationUI(validationResult);
+            });
+        }
+    }
+
+    // Nach Pageload: 4s Idle-Animation für Counter & Expression, Buttons deaktivieren und ausgrauen
+    allButtons.forEach(btn => { if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; } });
+    pageloadIdleIndex = 0;
+    pageloadIdleInterval = setInterval(() => {
+        counter.textContent = '#' + animalFrames[pageloadIdleIndex];
+        if (highlight) highlight.textContent = animalFrames[pageloadIdleIndex];
+        if (highlightMobile) highlightMobile.textContent = animalFrames[pageloadIdleIndex];
+        pageloadIdleIndex = (pageloadIdleIndex + 1) % animalFrames.length;
+    }, 400);
+    setTimeout(async () => {
+        clearInterval(pageloadIdleInterval);
+        isIdle = false; // Nach der Animation: Counter ist im echten Modus
+        const tokenInfo = await fetchLatestTokenInfo();
+        updateUIWithTokenInfo(tokenInfo);
+        allButtons.forEach(btn => { if (btn) { btn.disabled = false; btn.style.opacity = '1'; } });
+    }, 4000);
+
+    // Event-Handler für Toggle und Edit: Idle-Animation nur, wenn explizit gewünscht
+    toggleButton.addEventListener('click', () => {
+        setTimeout(() => {
+            // Idle-Animation nur, wenn explizit gewünscht (z.B. nach Edit)
+            if (isIdle && !isInitialState()) startIdleCounter();
+            else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
+        }, 350);
+    });
+    editBtn.addEventListener('click', () => {
+        setTimeout(() => {
+            if (isIdle && !isInitialState()) startIdleCounter();
+            else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
+        }, 350);
+    });
+
+    // Mint-Funktion anpassen
     async function mintExpression(isBest, word) {
         if (!window.ethereum) {
             alert("Bitte installiere MetaMask!");
@@ -635,114 +713,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const tx = await contract.express(isBest, word, { value });
             await tx.wait();
             alert("NFT successfully minted!");
-            await fetchAndDisplayLatestTokenInfo();
+            const tokenInfo = await fetchLatestTokenInfo();
+            updateUIWithTokenInfo(tokenInfo);
         } catch (err) {
             alert("Error minting: " + (err.info?.error?.message || err.message));
-        }
-    }
-
-    // 4. Event Listener for UI Elements
-    window.addEventListener('DOMContentLoaded', function() {
-        const mintButton = document.getElementById("mintButton");
-        if (!mintButton) return;
-        mintButton.onclick = async function() {
-            // Toggle: checked = best, unchecked = worst
-            const isBest = document.getElementById("toggleBestWorst").checked;
-            const word = document.getElementById("inputWord").value;
-            if (!word || word.length === 0) {
-                alert("Bitte gib ein Wort ein!");
-                return;
-            }
-            await mintExpression(isBest, word);
-        };
-    });
-    // --- Ende Integration ---
-
-    // --- Mobile Headline Support ---
-    const mobileHeadline = document.querySelector('.mobile-headline');
-    const highlightMobile = document.getElementById('highlight-word-mobile');
-    const editBtnMobile = document.getElementById('edit-btn-mobile');
-    const editIconMobile = document.getElementById('edit-icon-mobile');
-    const toggleTextMobile = mobileHeadline ? mobileHeadline.querySelector('.toggle-text') : null;
-    const toggleButtonMobile = mobileHeadline ? mobileHeadline.querySelector('.toggle-button') : null;
-
-    // Toggle-Button für Mobile
-    if (toggleButtonMobile && toggleTextMobile) {
-        toggleButtonMobile.addEventListener('click', () => {
-            toggleTextMobile.classList.add('strikethrough');
-            setTimeout(() => {
-                if (toggleTextMobile.textContent === 'worst') {
-                    toggleTextMobile.textContent = 'best';
-                    body.classList.add('toggled');
-                } else {
-                    toggleTextMobile.textContent = 'worst';
-                    body.classList.remove('toggled');
-                }
-                toggleTextMobile.classList.remove('strikethrough');
-            }, 300);
-        });
-    }
-
-    // Edit/Save für Mobile
-    if (editBtnMobile && highlightMobile && editIconMobile) {
-        editIconMobile.innerHTML = editSVG; // Immer initial das Edit-Icon setzen
-        editBtnMobile.addEventListener('click', async () => {
-            if (isEditing) return;
-            isEditing = true;
-            editIconMobile.innerHTML = saveSVG;
-            input = document.createElement('input');
-            input.type = 'text';
-            input.maxLength = 8;
-            input.className = 'edit-input';
-            input.value = '';
-            input.placeholder = 'insert word';
-            input.setAttribute('aria-label', 'Edit word');
-            input.style.textTransform = 'uppercase';
-            highlightMobile.style.display = 'none';
-            // Füge das Input-Feld nach dem Highlight ein
-            highlightMobile.parentNode.insertBefore(input, highlightMobile.nextSibling);
-            input.focus();
-            input.addEventListener('input', async () => {
-                input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
-                const validation = await validateInput(input.value);
-                updateValidationUI(validation);
-            });
-            input.addEventListener('keydown', async (e) => {
-                if (e.key === 'Enter') {
-                    await saveEditInputMobile();
-                }
-            });
-            input.addEventListener('blur', async () => {
-                await saveEditInputMobile();
-            });
-        });
-        async function saveEditInputMobile() {
-            let newWord = input.value.trim().toUpperCase();
-            const validation = await validateInput(newWord);
-            if (!validation.feedback.valid) {
-                highlightMobile.style.display = '';
-                if (validation.state === ValidationState.EMPTY) {
-                    highlightMobile.textContent = 'ʕ◔ϖ◔ʔ';
-                } else {
-                    highlightMobile.textContent = newWord || 'ʕ◔ϖ◔ʔ';
-                }
-                updateValidationUI(validation);
-            } else {
-                highlightMobile.textContent = newWord;
-                mintClicked = false;
-                lastMintedWord = null;
-                updateValidationUI(validation);
-            }
-            if (input && input.parentNode) {
-                input.parentNode.removeChild(input);
-            }
-            highlightMobile.style.display = '';
-            editIconMobile.innerHTML = editSVG; // Nach dem Speichern wieder das Edit-Icon anzeigen
-            isEditing = false;
-            setTimeout(() => {
-                if (!isIdle && !isInitialState()) startIdleCounter();
-                else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
-            }, 350);
         }
     }
 
@@ -881,36 +855,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function isInitialState() {
         return (toggleText && toggleText.textContent === initialTendency) && (highlight && highlight.textContent === initialExpression);
     }
-    // Toggle-Button: Idle-Animation triggern
-    toggleButton.addEventListener('click', () => {
-        setTimeout(() => {
-            if (!isIdle && !isInitialState()) startIdleCounter();
-            else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
-        }, 350);
-    });
-    // Edit-Button: Idle-Animation triggern
-    editBtn.addEventListener('click', () => {
-        setTimeout(() => {
-            if (!isIdle && !isInitialState()) startIdleCounter();
-            else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
-        }, 350);
-    });
 
-    // Nach Pageload: 4s Idle-Animation für Counter & Expression, Buttons deaktivieren und ausgrauen
-    const allButtons = [toggleButton, editBtn, mintBtn];
-    if (toggleButtonMobile) allButtons.push(toggleButtonMobile);
-    if (editBtnMobile) allButtons.push(editBtnMobile);
-    allButtons.forEach(btn => { if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; } });
-    let pageloadIdleIndex = 0;
-    let pageloadIdleInterval = setInterval(() => {
-        counter.textContent = '#' + animalFrames[pageloadIdleIndex];
-        if (highlight) highlight.textContent = animalFrames[pageloadIdleIndex];
-        if (highlightMobile) highlightMobile.textContent = animalFrames[pageloadIdleIndex];
-        pageloadIdleIndex = (pageloadIdleIndex + 1) % animalFrames.length;
-    }, 400);
-    setTimeout(async () => {
-        clearInterval(pageloadIdleInterval);
-        await fetchAndDisplayLatestTokenInfo();
-        allButtons.forEach(btn => { if (btn) { btn.disabled = false; btn.style.opacity = '1'; } });
-    }, 4000);
+    document.body.classList.add('toggled');
 }); 
