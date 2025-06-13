@@ -543,6 +543,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update UI
                 if (tendency && toggleText) toggleText.textContent = tendency;
                 if (expression && highlight) highlight.textContent = expression;
+                // Theme-Synchronisierung
+                if (tendency) {
+                    if (tendency.toLowerCase() === 'best') {
+                        document.body.classList.add('toggled');
+                    } else {
+                        document.body.classList.remove('toggled');
+                    }
+                }
             }
         } catch (error) {
             console.error('Error fetching token info:', error);
