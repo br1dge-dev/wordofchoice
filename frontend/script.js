@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isBest = (toggleText.textContent.trim().toLowerCase() === 'best');
             const word = highlight.textContent.trim();
             // Satz immer zweizeilig
-            const headline = isBest ? 'The best thing about' : 'The worst thing about';
+            const headline = isBest ? 'The best thing in' : 'The worst thing in';
             const sentence = `${headline}\nlife is ${word}`;
             const price = '0.01';
             openConfirmationModal(sentence, price, { isBest, word });

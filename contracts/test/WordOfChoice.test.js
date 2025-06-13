@@ -25,7 +25,7 @@ describe("WordOfChoice", function () {
 
   describe("Minting", function () {
     it("Should mint a new NFT with expression", async function () {
-      const expression = "The best thing about life is chocolate";
+      const expression = "The best thing in life is chocolate";
       await expect(wordOfChoice.connect(user).mintExpression(expression, { value: mintPrice }))
         .to.emit(wordOfChoice, "ExpressionMinted")
         .withArgs(user.address, 1, expression);

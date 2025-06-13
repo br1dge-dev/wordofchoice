@@ -95,7 +95,7 @@ contract WordOfChoice is ERC721, Ownable {
         string memory tendency = expr.isBest ? "best" : "worst";
         string memory colorBg = expr.isBest ? "#F5E9D4" : "#2C241B";
         string memory colorFg = expr.isBest ? "#2C241B" : "#F5E9D4";
-        string memory headline = expr.isBest ? "The best thing about" : "The worst thing about";
+        string memory headline = expr.isBest ? "The best thing in" : "The worst thing in";
         
         string memory svg = _generateSVG(tokenId, expr.isBest, expr.word, colorBg, colorFg, headline);
         string memory description = "Feel your mood, choose a word and mint your statement. Nicely numbered. An interactive, minimalistic EXPERIMENT, full of expressions. Made by br1dge, purely vibe-coded with CURSOR.";
