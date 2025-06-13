@@ -234,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Mint button functionality (adapted) ---
     mintBtn.addEventListener('click', async () => {
+        if (mintBtn.disabled) return;
         if (!isConnected) {
             openModal();
         } else {
@@ -894,4 +895,22 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
         }, 350);
     });
+
+    // Nach Pageload: 4s Idle-Animation für Counter & Expression, Buttons deaktivieren und ausgrauen
+    const allButtons = [toggleButton, editBtn, mintBtn];
+    if (toggleButtonMobile) allButtons.push(toggleButtonMobile);
+    if (editBtnMobile) allButtons.push(editBtnMobile);
+    allButtons.forEach(btn => { if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; } });
+    let pageloadIdleIndex = 0;
+    let pageloadIdleInterval = setInterval(() => {
+        counter.textContent = '#' + animalFrames[pageloadIdleIndex];
+        if (highlight) highlight.textContent = animalFrames[pageloadIdleIndex];
+        if (highlightMobile) highlightMobile.textContent = animalFrames[pageloadIdleIndex];
+        pageloadIdleIndex = (pageloadIdleIndex + 1) % animalFrames.length;
+    }, 400);
+    setTimeout(async () => {
+        clearInterval(pageloadIdleInterval);
+        await fetchAndDisplayLatestTokenInfo();
+        allButtons.forEach(btn => { if (btn) { btn.disabled = false; btn.style.opacity = '1'; } });
+    }, 4000);
 }); 
