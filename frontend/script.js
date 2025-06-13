@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
     connectWalletBtn.addEventListener('click', connectWallet);
 
     // 1. Contract address
-    const CONTRACT_ADDRESS = "0x5a71c6FB3E1b3Fdbd5dE156bff230EFB12D07a31";
+    const contractAddress = "0x5a71c6FB3E1b3Fdbd5dE156bff230EFB12D07a31";
 
     // 2. Contract ABI (only relevant functions)
     const contractABI = [
