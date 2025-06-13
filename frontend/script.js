@@ -115,6 +115,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const editSVG = `<svg id=\"edit-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><path d=\"M20 12H7M11 8l-4 4 4 4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
     const saveSVG = `<svg id=\"save-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><rect x=\"8\" y=\"16\" width=\"8\" height=\"2\" fill=\"currentColor\"/><rect x=\"8\" y=\"8\" width=\"8\" height=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>`;
 
+    // Initial State merken
+    let initialTendency = null;
+    let initialExpression = null;
+    let isIdle = false;
+    function startIdleCounter() {
+        if (loadingInterval) clearInterval(loadingInterval);
+        isIdle = true;
+        loadingInterval = setInterval(() => {
+            counter.textContent = '#' + animalFrames[animalIndex];
+            animalIndex = (animalIndex + 1) % animalFrames.length;
+        }, 400);
+    }
+    function stopIdleCounter(tokenId) {
+        if (loadingInterval) clearInterval(loadingInterval);
+        isIdle = false;
+        counter.textContent = `#${tokenId}`;
+    }
+
     // Toggle dark/light mode
     toggleButton.addEventListener('click', () => {
         // Strikethrough animation for the fading word
@@ -259,6 +277,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             highlight.style.display = '';
             isEditing = false;
+            setTimeout(() => {
+                if (!isIdle && !isInitialState()) startIdleCounter();
+                else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
+            }, 350);
         }
     });
 
@@ -518,6 +540,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 counter.textContent = '#0';
                 if (toggleText) toggleText.textContent = '?';
                 if (highlight) highlight.textContent = 'CHOICE';
+                initialTendency = '?';
+                initialExpression = 'CHOICE';
                 return;
             } else {
                 counter.textContent = `#${(nextId - 1n).toString()}`;
@@ -543,6 +567,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update UI
                 if (tendency && toggleText) toggleText.textContent = tendency;
                 if (expression && highlight) highlight.textContent = expression;
+                initialTendency = tendency;
+                initialExpression = expression;
                 // Theme-Synchronisierung
                 if (tendency) {
                     if (tendency.toLowerCase() === 'best') {
@@ -688,6 +714,10 @@ document.addEventListener('DOMContentLoaded', () => {
             highlightMobile.style.display = '';
             editIconMobile.innerHTML = editSVG; // Nach dem Speichern wieder das Edit-Icon anzeigen
             isEditing = false;
+            setTimeout(() => {
+                if (!isIdle && !isInitialState()) startIdleCounter();
+                else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
+            }, 350);
         }
     }
 
@@ -821,4 +851,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     setInterval(triggerPlayerWiggle, 2500);
+
+    // Helper: Prüfe, ob aktueller Zustand initial ist
+    function isInitialState() {
+        return (toggleText && toggleText.textContent === initialTendency) && (highlight && highlight.textContent === initialExpression);
+    }
+    // Toggle-Button: Idle-Animation triggern
+    toggleButton.addEventListener('click', () => {
+        setTimeout(() => {
+            if (!isIdle && !isInitialState()) startIdleCounter();
+            else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
+        }, 350);
+    });
+    // Edit-Button: Idle-Animation triggern
+    editBtn.addEventListener('click', () => {
+        setTimeout(() => {
+            if (!isIdle && !isInitialState()) startIdleCounter();
+            else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
+        }, 350);
+    });
 }); 
