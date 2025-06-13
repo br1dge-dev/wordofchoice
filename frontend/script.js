@@ -516,8 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update counter
             if (nextId === 1n) {
                 counter.textContent = '#0';
-                if (toggleText) toggleText.textContent = 'NOWORD';
-                if (highlight) highlight.textContent = 'NOWORD';
+                if (toggleText) toggleText.textContent = '?';
+                if (highlight) highlight.textContent = 'CHOICE';
                 return;
             } else {
                 counter.textContent = `#${(nextId - 1n).toString()}`;
