@@ -682,4 +682,135 @@ document.addEventListener('DOMContentLoaded', () => {
             isEditing = false;
         }
     }
+
+    // --- Music Player ---
+    const musicFolder = './music/';
+    const tracks = [
+        { file: 'Choice is Crunch.mp3', title: 'Choice is Crunch' },
+        { file: 'WAHL is Choice.mp3', title: 'WAHL is Choice' },
+        { file: 'Night Drive.mp3', title: 'Night Drive' },
+        { file: 'I chose DANCE.mp3', title: 'I chose DANCE' },
+        { file: 'I chose CHILL.mp3', title: 'I chose CHILL' },
+        { file: 'Duh Duh Duh.mp3', title: 'Duh Duh Duh' }
+    ];
+    // 'Choice is Crunch' immer zuerst, Rest random
+    function shuffle(array) {
+        let arr = array.slice(1);
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return [array[0], ...arr];
+    }
+    const shuffledTracks = shuffle(tracks);
+    let currentTrackIndex = 0;
+    let audio = null;
+    let isPlaying = false;
+    let isLoading = false;
+    let loadedTracks = [false]; // Initial: nichts geladen
+
+    // Buttons
+    const playPauseBtn = document.getElementById('play-pause');
+    const playPauseIcon = document.getElementById('play-pause-icon');
+    const prevBtn = document.getElementById('prev-track');
+    const nextBtn = document.getElementById('next-track');
+
+    const playerContainer = document.getElementById('music-player-container');
+    function updatePlayPauseIcon() {
+        if (isPlaying) {
+            playPauseIcon.innerHTML = '⏸';
+            playerContainer.classList.add('music-playing');
+        } else {
+            playPauseIcon.innerHTML = '▶';
+            playerContainer.classList.remove('music-playing');
+        }
+    }
+    // Initial: Kein Audio laden, erst bei Play
+    function ensureAudioLoaded(idx) {
+        if (!audio) {
+            audio = new Audio();
+            audio.volume = 0.85;
+            audio.preload = 'auto';
+            audio.addEventListener('ended', () => {
+                let nextIdx = currentTrackIndex + 1;
+                if (nextIdx >= shuffledTracks.length) nextIdx = 0;
+                playTrack(nextIdx);
+            });
+            audio.addEventListener('play', () => {
+                isPlaying = true;
+                updatePlayPauseIcon();
+            });
+            audio.addEventListener('pause', () => {
+                isPlaying = false;
+                updatePlayPauseIcon();
+            });
+        }
+        // src IMMER setzen, wenn nicht gesetzt oder falscher Track
+        if (!audio.src || !audio.src.includes(encodeURIComponent(shuffledTracks[idx].file))) {
+            audio.src = musicFolder + shuffledTracks[idx].file;
+        }
+        loadedTracks[idx] = true;
+    }
+    async function playTrack(idx) {
+        if (idx < 0 || idx >= shuffledTracks.length) return;
+        ensureAudioLoaded(idx);
+        currentTrackIndex = idx;
+        if (!audio.paused && !audio.ended) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+        isLoading = true;
+        try {
+            await audio.play();
+            isPlaying = true;
+        } catch (e) {
+            isPlaying = false;
+        }
+        isLoading = false;
+        updatePlayPauseIcon();
+    }
+    playPauseBtn.addEventListener('click', async () => {
+        if (isLoading) return;
+        if (!audio) {
+            try {
+                await playTrack(currentTrackIndex);
+            } catch (e) {
+                console.error('Fehler beim Starten des Players:', e);
+            }
+        } else if (isPlaying && !audio.paused) {
+            audio.pause();
+            isPlaying = false;
+            updatePlayPauseIcon();
+        } else if (!isPlaying || audio.paused) {
+            try {
+                await audio.play();
+                isPlaying = true;
+            } catch (e) {
+                isPlaying = false;
+                console.error('Fehler beim Abspielen:', e);
+            }
+            updatePlayPauseIcon();
+        }
+    });
+    prevBtn.addEventListener('click', () => {
+        let idx = currentTrackIndex - 1;
+        if (idx < 0) idx = shuffledTracks.length - 1;
+        playTrack(idx);
+    });
+    nextBtn.addEventListener('click', () => {
+        let idx = currentTrackIndex + 1;
+        if (idx >= shuffledTracks.length) idx = 0;
+        playTrack(idx);
+    });
+    // Initial Icon
+    updatePlayPauseIcon();
+
+    // Player periodisch wigglen, wenn keine Musik läuft
+    function triggerPlayerWiggle() {
+        if (!isPlaying && playerContainer) {
+            playerContainer.classList.add('wiggle');
+            setTimeout(() => playerContainer.classList.remove('wiggle'), 450);
+        }
+    }
+    setInterval(triggerPlayerWiggle, 2500);
 }); 
