@@ -244,18 +244,22 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEditButton(editBtnMobile, editIconMobile, true);
 
     // --- Toggle button logic for Desktop and Mobile ---
-    function setupToggleButton(btn, textEl) {
+    function setupToggleButton(btn, textEl, isMobile) {
         if (!btn) return;
         btn.addEventListener('click', () => {
             textEl.classList.add('strikethrough');
             setTimeout(() => {
+                let newState;
                 if (textEl.textContent === 'worst') {
-                    textEl.textContent = 'best';
+                    newState = 'best';
                     body.classList.add('toggled');
                 } else {
-                    textEl.textContent = 'worst';
+                    newState = 'worst';
                     body.classList.remove('toggled');
                 }
+                // Beide Toggle-Text-Elemente synchronisieren
+                if (toggleText) toggleText.textContent = newState;
+                if (toggleTextMobile) toggleTextMobile.textContent = newState;
                 showNextTokenIdPlusOne();
                 textEl.classList.remove('strikethrough');
                 // Nach Toggle: Validierung für beide Highlights
@@ -264,8 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         });
     }
-    setupToggleButton(toggleButton, toggleText);
-    setupToggleButton(toggleButtonMobile, toggleTextMobile);
+    setupToggleButton(toggleButton, toggleText, false);
+    setupToggleButton(toggleButtonMobile, toggleTextMobile, true);
 
     // --- Nach jedem UI-Update: beide Highlights synchronisieren und validieren ---
     function updateUIWithTokenInfo(tokenInfo) {
