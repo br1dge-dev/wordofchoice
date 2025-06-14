@@ -1,19 +1,19 @@
 const hre = require("hardhat");
 
 async function main() {
-  const WordOfChoice = await hre.ethers.getContractFactory("WordOfChoice");
-  const wordOfChoice = await WordOfChoice.deploy();
+  const WordOfChoiceLife = await hre.ethers.getContractFactory("WordOfChoiceLife");
+  const wordOfChoiceLife = await WordOfChoiceLife.deploy();
 
-  await wordOfChoice.waitForDeployment();
+  await wordOfChoiceLife.waitForDeployment();
 
-  console.log("WordOfChoice deployed to:", await wordOfChoice.getAddress());
+  console.log("WordOfChoiceLife deployed to:", await wordOfChoiceLife.getAddress());
 
   // Verify contract on BaseScan
   if (process.env.BASESCAN_API_KEY) {
     console.log("Verifying contract on BaseScan...");
     try {
       await hre.run("verify:verify", {
-        address: await wordOfChoice.getAddress(),
+        address: await wordOfChoiceLife.getAddress(),
         constructorArguments: [],
       });
       console.log("Contract verified successfully");

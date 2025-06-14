@@ -7,11 +7,11 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
- * @title WordOfChoice
+ * @title WordOfChoiceLife
  * @dev ERC721 token contract for minting expressions with words
  * @custom:security-contact security@wordofchoice.xyz
  */
-contract WordOfChoice is ERC721, Ownable {
+contract WordOfChoiceLife is ERC721, Ownable {
     using Strings for uint256;
 
     // Struct to store expression data
@@ -23,7 +23,7 @@ contract WordOfChoice is ERC721, Ownable {
 
     // State variables
     uint256 public nextTokenId = 1;
-    uint256 public mintPrice = 0.0001 ether;
+    uint256 public mintPrice = 0.01 ether;
     mapping(uint256 => Expression) public expressions;
     mapping(string => bool) public usedWords; // Track used words to prevent duplicates
 
@@ -41,7 +41,7 @@ contract WordOfChoice is ERC721, Ownable {
     /**
      * @dev Constructor sets the initial owner and token details
      */
-    constructor() ERC721("word of CHOICE", "WOC") Ownable(msg.sender) {}
+    constructor() ERC721("word of CHOICE (life)", "WOCL") Ownable(msg.sender) {}
 
     /**
      * @dev Mints a new expression token

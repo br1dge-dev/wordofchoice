@@ -1319,4 +1319,16 @@ body.toggled .music-play-btn {
 .toast.show {
     opacity: 1;
     visibility: visible;
+}
+
+.counter-hash {
+  font-size: 1em;
+  font-weight: bold;
+  vertical-align: middle;
+}
+.counter-arrow-svg {
+  transform: rotate(90deg);
+  vertical-align: middle;
+  margin-left: 0.08em;
+  margin-bottom: 0.04em;
 } 

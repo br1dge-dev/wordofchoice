@@ -146,15 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Hilfsfunktion, um nextTokenId vom Contract zu holen und Counter zu setzen
     async function showNextTokenIdPlusOne() {
-        try {
-            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-            const contract = new ethers.Contract(contractAddress, contractABI, provider);
-            const nextId = await contract.nextTokenId();
-            const currentId = Number(nextId) - 1;
-            counter.textContent = `#${currentId} +1`;
-        } catch (e) {
-            counter.textContent = '#? +1';
-        }
+        counter.innerHTML = '<span class="counter-hash">#</span><span class="counter-arrow"><svg class="counter-arrow-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="none"><path d="M20 12H7M11 8l-4 4 4 4" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
     }
 
     // --- Central validation and UI update logic for both Desktop and Mobile ---
@@ -585,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
     connectWalletBtn.addEventListener('click', connectWallet);
 
     // 1. Contract address
-    const contractAddress = "0x5a71c6FB3E1b3Fdbd5dE156bff230EFB12D07a31";
+    const contractAddress = "0x4A0f7f7aF80d319228ADB0d028DE93b4308405c9";
 
     // 2. Contract ABI (only relevant functions)
     const contractABI = [
@@ -699,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tokenInfo = await fetchLatestTokenInfo();
         updateUIWithTokenInfo(tokenInfo);
         setAllButtonsEnabled(true);
-    }, 4000);
+    }, 2500);
 
     // Optional: Bei Resize/Orientation Change Buttons erneut aktivieren
     window.addEventListener('resize', () => setAllButtonsEnabled(true));
