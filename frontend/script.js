@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!validation.feedback.valid) {
                 highlight.style.display = '';
                 if (validation.state === ValidationState.EMPTY) {
-                    highlight.textContent = 'ʕ◔ϖ◔ʔ';
+                    highlight.textContent = 'EMPTY';
                 } else {
                     highlight.textContent = newWord || 'ʕ◔ϖ◔ʔ';
                 }
@@ -483,6 +483,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Listen for account changes
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
                 window.ethereum.on('chainChanged', handleChainChanged);
+                // --- NEU: Nach erfolgreichem Connect die aktuelle Expression validieren ---
+                const validationResult = await validateInput(highlight.textContent);
+                updateValidationUI(validationResult);
             } catch (error) {
                 if (error && (error.code === 4001 || error.message?.includes('User rejected'))) {
                     walletStatus.textContent = 'Connection cancelled. Please try again.';
