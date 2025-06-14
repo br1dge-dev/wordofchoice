@@ -1331,4 +1331,13 @@ body.toggled .music-play-btn {
   vertical-align: middle;
   margin-left: 0.08em;
   margin-bottom: 0.04em;
+}
+
+a {
+  color: #2C241B;
+  text-decoration: underline dotted;
+  transition: color 0.5s;
+}
+body.toggled a {
+  color: #F5E9D4;
 } 
