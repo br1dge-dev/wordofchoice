@@ -157,101 +157,151 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Edit/Save functionality für Desktop
-    editBtn.addEventListener('click', async () => {
-        if (!isEditing) {
-            isEditing = true;
-            editIcon.innerHTML = saveSVG;
-            input = document.createElement('input');
-            input.type = 'text';
-            input.maxLength = 8;
-            input.className = 'edit-input';
-            input.value = '';
-            input.placeholder = 'insert word';
-            input.setAttribute('aria-label', 'Edit word');
-            input.style.textTransform = 'uppercase';
-            highlight.style.display = 'none';
-            highlight.parentNode.insertBefore(input, editBtn);
-            input.focus();
-            // --- Counter zeigt #<nextTokenId> +1 während Edit ---
-            showNextTokenIdPlusOne();
-            input.addEventListener('input', async () => {
-                input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
-                // Live-Validierung
-                const validation = await validateInput(input.value);
-                updateValidationUI(validation);
-            });
-            input.addEventListener('keydown', async (e) => {
-                if (e.key === 'Enter') {
-                    await saveEditInput();
-                }
-            });
-            input.addEventListener('blur', async () => {
-                await saveEditInput();
-            });
-        }
-        async function saveEditInput() {
-            let newWord = input.value.trim().toUpperCase();
-            const validation = await validateInput(newWord);
-            if (!validation.feedback.valid) {
-                highlight.style.display = '';
-                if (validation.state === ValidationState.EMPTY) {
-                    highlight.textContent = 'EMPTY';
-                } else {
-                    highlight.textContent = newWord || 'ʕ◔ϖ◔ʔ';
-                }
-                updateValidationUI(validation);
-            } else {
-                highlight.textContent = newWord;
-                mintClicked = false;
-                lastMintedWord = null;
-                updateValidationUI(validation);
-            }
-            // Entferne das Input-Feld komplett aus dem DOM
-            if (input && input.parentNode) {
-                input.parentNode.removeChild(input);
-            }
-            highlight.style.display = '';
-            isEditing = false;
-            setTimeout(() => {
-                // Nach Edit: Counter bleibt auf #<nextTokenId> +1 bis echte Daten geladen werden
-            }, 350);
-        }
-    });
+    // --- Central validation and UI update logic for both Desktop and Mobile ---
+    function validateAndUpdateUI(expression) {
+        validateInput(expression).then(validationResult => {
+            updateValidationUI(validationResult);
+            // Update both highlights
+            if (highlight) highlight.textContent = expression;
+            if (highlightMobile) highlightMobile.textContent = expression;
+        });
+    }
 
-    // Toggle dark/light mode
-    toggleButton.addEventListener('click', () => {
-        // Strikethrough animation for the fading word
-        toggleText.classList.add('strikethrough');
-        setTimeout(() => {
-            // Theme-Logik: 'worst' = dark (kein toggled), 'best' = light (toggled)
-            if (toggleText.textContent === 'worst') {
-                toggleText.textContent = 'best';
-                body.classList.add('toggled');
-            } else {
-                toggleText.textContent = 'worst';
-                body.classList.remove('toggled');
-            }
-            // If in edit mode, also toggle the value in the input field
-            if (isEditing && input) {
-                if (input.value.trim().toUpperCase() === 'WORST') {
-                    input.value = 'BEST';
-                } else if (input.value.trim().toUpperCase() === 'BEST') {
-                    input.value = 'WORST';
+    // --- Set Edit-Icon for Desktop and Mobile (identisch, keine Rotation mehr nötig) ---
+    function setEditIcons() {
+        if (editIcon) {
+            editIcon.innerHTML = editSVG;
+        }
+        if (editIconMobile) {
+            editIconMobile.innerHTML = editSVG;
+        }
+    }
+    setEditIcons();
+    window.addEventListener('resize', setEditIcons);
+    window.addEventListener('orientationchange', setEditIcons);
+
+    // --- Edit/Save functionality for Desktop and Mobile ---
+    function setupEditButton(btn, icon, isMobile) {
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+            if (!isEditing) {
+                isEditing = true;
+                icon.innerHTML = saveSVG;
+                input = document.createElement('input');
+                input.type = 'text';
+                input.maxLength = 8;
+                input.className = 'edit-input';
+                input.value = '';
+                input.placeholder = 'insert word';
+                input.setAttribute('aria-label', 'Edit word');
+                input.style.textTransform = 'uppercase';
+                if (isMobile) {
+                    highlightMobile.style.display = 'none';
+                    highlightMobile.parentNode.insertBefore(input, btn);
+                } else {
+                    highlight.style.display = 'none';
+                    highlight.parentNode.insertBefore(input, btn);
                 }
-            } else {
-                // Toggle highlight word if not in edit mode
-                if (highlight.textContent.trim().toUpperCase() === 'WORST') {
-                    highlight.textContent = 'BEST';
-                } else if (highlight.textContent.trim().toUpperCase() === 'BEST') {
-                    highlight.textContent = 'WORST';
-                }
+                input.focus();
+                showNextTokenIdPlusOne();
+                input.addEventListener('input', async () => {
+                    input.value = input.value.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').toUpperCase();
+                    validateAndUpdateUI(input.value);
+                });
+                input.addEventListener('keydown', async (e) => {
+                    if (e.key === 'Enter') {
+                        await saveEditInput();
+                    }
+                });
+                input.addEventListener('blur', async () => {
+                    await saveEditInput();
+                });
             }
-            // --- Counter zeigt #<nextTokenId> +1 nach Toggle ---
-            showNextTokenIdPlusOne();
-            toggleText.classList.remove('strikethrough');
-        }, 300);
-    });
+            async function saveEditInput() {
+                let newWord = input.value.trim().toUpperCase();
+                const validation = await validateInput(newWord);
+                if (!validation.feedback.valid) {
+                    if (isMobile) highlightMobile.style.display = '';
+                    else highlight.style.display = '';
+                    if (validation.state === ValidationState.EMPTY) {
+                        if (isMobile) highlightMobile.textContent = 'EMPTY';
+                        else highlight.textContent = 'EMPTY';
+                    } else {
+                        if (isMobile) highlightMobile.textContent = newWord || 'ʕ◔ϖ◔ʔ';
+                        else highlight.textContent = newWord || 'ʕ◔ϖ◔ʔ';
+                    }
+                    updateValidationUI(validation);
+                } else {
+                    if (isMobile) highlightMobile.textContent = newWord;
+                    else highlight.textContent = newWord;
+                    mintClicked = false;
+                    lastMintedWord = null;
+                    updateValidationUI(validation);
+                }
+                if (input && input.parentNode) {
+                    input.parentNode.removeChild(input);
+                }
+                if (isMobile) highlightMobile.style.display = '';
+                else highlight.style.display = '';
+                isEditing = false;
+                setTimeout(() => {}, 350);
+            }
+        });
+    }
+    setupEditButton(editBtn, editIcon, false);
+    setupEditButton(editBtnMobile, editIconMobile, true);
+
+    // --- Toggle button logic for Desktop and Mobile ---
+    function setupToggleButton(btn, textEl) {
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            textEl.classList.add('strikethrough');
+            setTimeout(() => {
+                if (textEl.textContent === 'worst') {
+                    textEl.textContent = 'best';
+                    body.classList.add('toggled');
+                } else {
+                    textEl.textContent = 'worst';
+                    body.classList.remove('toggled');
+                }
+                showNextTokenIdPlusOne();
+                textEl.classList.remove('strikethrough');
+                // Nach Toggle: Validierung für beide Highlights
+                if (highlight) validateAndUpdateUI(highlight.textContent);
+                if (highlightMobile) validateAndUpdateUI(highlightMobile.textContent);
+            }, 300);
+        });
+    }
+    setupToggleButton(toggleButton, toggleText);
+    setupToggleButton(toggleButtonMobile, toggleTextMobile);
+
+    // --- Nach jedem UI-Update: beide Highlights synchronisieren und validieren ---
+    function updateUIWithTokenInfo(tokenInfo) {
+        if (!tokenInfo) return;
+        const { tokenId, tendency, expression } = tokenInfo;
+        counter.textContent = `#${tokenId}`;
+        if (toggleText) toggleText.textContent = tendency;
+        if (toggleTextMobile) toggleTextMobile.textContent = tendency;
+        if (highlight) highlight.textContent = expression;
+        if (highlightMobile) highlightMobile.textContent = expression;
+        initialTendency = tendency;
+        initialExpression = expression;
+        if (tendency) {
+            if (tendency.toLowerCase() === 'best') {
+                document.body.classList.add('toggled');
+            } else {
+                document.body.classList.remove('toggled');
+            }
+        }
+        if (tokenId !== undefined) {
+            stopIdleCounter(tokenId);
+        }
+        // Validierung für beide Highlights
+        if (mintBtn.textContent.trim().toUpperCase() === 'MINT') {
+            if (highlight) validateAndUpdateUI(expression);
+            if (highlightMobile) validateAndUpdateUI(expression);
+        }
+    }
 
     // Global highlight word loader
     let wordInterval = null;
@@ -626,48 +676,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateUIWithTokenInfo(tokenInfo) {
-        if (!tokenInfo) return;
-        
-        const { tokenId, tendency, expression } = tokenInfo;
-        
-        // Update counter
-        counter.textContent = `#${tokenId}`;
-        
-        // Update UI elements
-        if (toggleText) toggleText.textContent = tendency;
-        if (highlight) highlight.textContent = expression;
-        if (highlightMobile) highlightMobile.textContent = expression;
-        
-        // Update initial state
-        initialTendency = tendency;
-        initialExpression = expression;
-        
-        // Theme-Synchronisierung
-        if (tendency) {
-            if (tendency.toLowerCase() === 'best') {
-                document.body.classList.add('toggled');
-            } else {
-                document.body.classList.remove('toggled');
-            }
-        }
-
-        // --- Idle-Animation nach jedem UI-Update stoppen ---
-        if (tokenId !== undefined) {
-            stopIdleCounter(tokenId);
-        }
-
-        // --- NEU: Nach jedem Laden prüfen, ob das Wort vergeben ist ---
-        // Nur prüfen, wenn der Mint-Button auf 'MINT' steht
-        if (mintBtn.textContent.trim().toUpperCase() === 'MINT') {
-            validateInput(expression).then(validationResult => {
-                updateValidationUI(validationResult);
-            });
-        }
+    // Helper function to enable/disable all interactive buttons (desktop & mobile)
+    function setAllButtonsEnabled(enabled) {
+        document.querySelectorAll('.toggle-button, .edit-button, .mint-btn').forEach(btn => {
+            btn.disabled = !enabled;
+            btn.style.opacity = enabled ? '1' : '0.45';
+        });
     }
 
     // Nach Pageload: 4s Idle-Animation für Counter & Expression, Buttons deaktivieren und ausgrauen
-    allButtons.forEach(btn => { if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; } });
+    setAllButtonsEnabled(false);
     pageloadIdleIndex = 0;
     pageloadIdleInterval = setInterval(() => {
         counter.textContent = '#' + animalFrames[pageloadIdleIndex];
@@ -680,8 +698,12 @@ document.addEventListener('DOMContentLoaded', () => {
         isIdle = false; // Nach der Animation: Counter ist im echten Modus
         const tokenInfo = await fetchLatestTokenInfo();
         updateUIWithTokenInfo(tokenInfo);
-        allButtons.forEach(btn => { if (btn) { btn.disabled = false; btn.style.opacity = '1'; } });
+        setAllButtonsEnabled(true);
     }, 4000);
+
+    // Optional: Bei Resize/Orientation Change Buttons erneut aktivieren
+    window.addEventListener('resize', () => setAllButtonsEnabled(true));
+    window.addEventListener('orientationchange', () => setAllButtonsEnabled(true));
 
     // Event-Handler für Toggle und Edit: Idle-Animation nur, wenn explizit gewünscht
     toggleButton.addEventListener('click', () => {
