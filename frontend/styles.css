@@ -1288,4 +1288,35 @@ body.toggled .music-play-btn {
     60% { transform: scale(1) translateY(1.2px); }
     75% { transform: scale(1) translateY(-0.6px); }
     100% { transform: scale(1) translateY(0); }
+}
+
+.toast {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #F5E9D4;
+    color: #2C241B;
+    padding: 1em 2em;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    font-size: 1em;
+    text-align: center;
+    min-width: 200px;
+    max-width: 90%;
+}
+
+.toast.toggled {
+    background-color: #2C241B;
+    color: #F5E9D4;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.toast.show {
+    opacity: 1;
+    visibility: visible;
 } 

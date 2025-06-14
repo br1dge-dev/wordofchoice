@@ -698,10 +698,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 350);
     });
 
-    // Mint-Funktion anpassen
+    // Toast notification
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        // Apply theme-dependent styling
+        if (body.classList.contains('toggled')) {
+            toast.classList.add('toggled');
+        } else {
+            toast.classList.remove('toggled');
+        }
+        toast.className = 'toast show' + (body.classList.contains('toggled') ? ' toggled' : '');
+        setTimeout(() => {
+            toast.className = 'toast' + (body.classList.contains('toggled') ? ' toggled' : '');
+        }, 4000); // Show for 4 seconds
+    }
+
+    // Mint function
     async function mintExpression(isBest, word) {
         if (!window.ethereum) {
-            alert("Bitte installiere MetaMask!");
+            alert("Please install MetaMask!");
             return;
         }
         const provider = new ethers.BrowserProvider(window.ethereum);
@@ -715,7 +731,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const tx = await contract.express(isBest, word, { value });
             await tx.wait();
-            alert("NFT successfully minted!");
+            // Success message after mint
+            showToast("Expression successfully minted!");
             const tokenInfo = await fetchLatestTokenInfo();
             updateUIWithTokenInfo(tokenInfo);
         } catch (err) {
