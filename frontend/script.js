@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Validation for both highlights
         if (mintBtn.textContent.trim().toUpperCase() === 'MINT') {
             if (highlight) validateAndUpdateUI(expression);
-            if (highlightMobile) validateAndUI(expression);
+            if (highlightMobile) validateAndUpdateUI(expression);
         }
         // Immediately update marquee
         updateExpressionsMarquee();
