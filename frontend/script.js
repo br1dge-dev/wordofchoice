@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
         [ValidationState.WORD_EXISTS]: { text: 'GONE', valid: false }
     };
 
+    let usedWordsSet = new Set();
+
     // Central validation function
     async function validateInput(word) {
         const trimmed = word.trim().toUpperCase();
@@ -57,16 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Word already exists
-        try {
-            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-            const contract = new ethers.Contract(contractAddress, contractABI, provider);
-            const exists = await contract.usedWords(trimmed);
-            if (exists) {
-                return { state: ValidationState.WORD_EXISTS, feedback: ValidationFeedback[ValidationState.WORD_EXISTS] };
-            }
-        } catch (e) {
-            console.error('Error checking usedWords:', e);
-            return { state: ValidationState.INVALID, feedback: ValidationFeedback[ValidationState.INVALID] };
+        if (usedWordsSet.has(trimmed)) {
+            return { state: ValidationState.WORD_EXISTS, feedback: ValidationFeedback[ValidationState.WORD_EXISTS] };
         }
 
         // All valid
@@ -582,10 +576,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     connectWalletBtn.addEventListener('click', connectWallet);
 
-    // 1. Contract address
-    const contractAddress = "0x4A0f7f7aF80d319228ADB0d028DE93b4308405c9";
+    // Contract address (Sepolia, Stand Juni 2025)
+    const contractAddress = "0xB15E15Ad4f46d6318b877Fd400764aa99CcD58c7";
 
-    // 2. Contract ABI (only relevant functions)
+    // Contract ABI (nur relevante Funktionen)
     const contractABI = [
         {
             "inputs": [
@@ -628,108 +622,82 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             "stateMutability": "view",
             "type": "function"
-        }
+        },
+        "function getExpressionsInRange(uint256 start, uint256 end) public view returns (tuple(bool isBest, string word, uint256 timestamp)[] memory, uint256[] memory)",
     ];
 
-    // On page load: show token ID, tendency and expression
-    // fetchAndDisplayLatestTokenInfo();
-
-    // New functions for separated data fetching and UI update
-    async function fetchLatestTokenInfo() {
-        try {
-            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-            const contract = new ethers.Contract(contractAddress, contractABI, provider);
-            
-            // Get next token ID
-            const nextId = await contract.nextTokenId();
-            
-            let tokenId = 0;
-            let tendency = '?';
-            let expression = 'CHOICE';
-
-            if (nextId === 1n) {
-                return { tokenId, tendency, expression };
-            } else {
-                tokenId = Number(nextId - 1n);
+    // Batched fetch for all expressions
+    async function fetchAllExpressionsBatched(batchSize = 200) {
+        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+        const contract = new ethers.Contract(contractAddress, contractABI, provider);
+        const allExpressions = [];
+        const allIds = [];
+        const nextTokenId = await contract.nextTokenId();
+        for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
+            let end = nextTokenId - 1n;
+            if (start + BigInt(batchSize) - 1n < end) {
+                end = start + BigInt(batchSize) - 1n;
             }
-
-            // Get latest token data if exists
-            if (nextId > 1n) {
-                const lastTokenId = nextId - 1n;
-                const tokenUri = await contract.tokenURI(lastTokenId);
-                const json = atob(tokenUri.split(",")[1]);
-                const meta = JSON.parse(json);
-                // Extract attributes
-                if (meta.attributes && Array.isArray(meta.attributes)) {
-                    for (const attr of meta.attributes) {
-                        if (attr.trait_type === 'Tendency') tendency = attr.value;
-                        if (attr.trait_type === 'Expression') expression = attr.value;
-                    }
-                }
-            }
-            return { tokenId, tendency, expression };
-        } catch (error) {
-            console.error('Error fetching token info:', error);
-            return null;
+            const [expressions, ids] = await contract.getExpressionsInRange(start, end);
+            allExpressions.push(...expressions);
+            allIds.push(...ids);
         }
+        // Set für word is gone Validierung aktualisieren
+        usedWordsSet = new Set(allExpressions.map(expr => (expr.word || expr[1] || '').toUpperCase()));
+        return allExpressions.map((expr, i) => ({
+            ...expr,
+            tokenId: Number(allIds[i])
+        }));
     }
 
-    // Function to fetch all expressions
-    async function fetchAllExpressions() {
-        try {
-            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-            const contract = new ethers.Contract(contractAddress, contractABI, provider);
-            
-            const nextId = await contract.nextTokenId();
-            const expressions = [];
-            
-            // If no tokens exist, return empty
-            if (nextId === 1n) return expressions;
-            
-            // Fetch all existing tokens
-            for (let i = 1n; i < nextId; i++) {
-                try {
-                    const tokenUri = await contract.tokenURI(i);
-                    const json = atob(tokenUri.split(",")[1]);
-                    const meta = JSON.parse(json);
-                    
-                    let expression = '';
-                    if (meta.attributes && Array.isArray(meta.attributes)) {
-                        for (const attr of meta.attributes) {
-                            if (attr.trait_type === 'Expression') {
-                                expression = attr.value;
-                                break;
-                            }
-                        }
-                    }
-                    if (expression) {
-                        expressions.push({ id: Number(i), expression });
-                    }
-                } catch (error) {
-                    console.error(`Error fetching token ${i}:`, error);
-                }
-            }
-            return expressions;
-        } catch (error) {
-            console.error('Error fetching expressions:', error);
-            return [];
-        }
+    // Pause-Funktion für Benutzerinteraktionen
+    let isPaused = false;
+    let pauseTimeout = null;
+    let updateInterval = null;
+
+    function pauseInteractions() {
+        isPaused = true;
+        if (pauseTimeout) clearTimeout(pauseTimeout);
+        if (updateInterval) clearInterval(updateInterval);
+        
+        pauseTimeout = setTimeout(() => {
+            isPaused = false;
+            // Starte Intervall neu nach Pause
+            startUpdateInterval();
+        }, 5000); // 5 Sekunden Pause
     }
 
-    // Function to update the marquee
+    function startUpdateInterval() {
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(async () => {
+            if (!isPaused) {
+                // Aktualisiere alle dynamischen Elemente
+                const tokenInfo = await fetchLatestTokenInfo();
+                updateUIWithTokenInfo(tokenInfo);
+                updateExpressionsMarquee();
+            }
+        }, 10000); // Alle 10 Sekunden aktualisieren
+    }
+
+    // Event-Listener für Benutzerinteraktionen
+    document.addEventListener('mousemove', pauseInteractions);
+    document.addEventListener('click', pauseInteractions);
+    document.addEventListener('keydown', pauseInteractions);
+    document.addEventListener('touchstart', pauseInteractions);
+
+    // Modifiziere updateExpressionsMarquee um Pause zu berücksichtigen
     async function updateExpressionsMarquee() {
-        const expressions = await fetchAllExpressions();
+        if (isPaused) return;
+        const expressions = await fetchAllExpressionsBatched();
+        console.log('Marquee expressions:', expressions);
         const marqueeContent = document.querySelector('.expressions-content');
         const marqueeContainer = document.querySelector('.expressions-marquee');
         if (marqueeContent && expressions.length > 0 && marqueeContainer) {
-            // HTML for one loop
-            const wordHTML = expressions.map(({ expression }) => 
-                `<span>${expression}</span>`
+            const wordHTML = expressions.map(expr => 
+                `<span>${expr.word || expr[1] || expr.expression || JSON.stringify(expr)}</span>`
             ).join('<span class="dot">&nbsp;&middot;&nbsp;</span>');
-            // Temporarily insert to measure width
             marqueeContent.innerHTML = wordHTML;
             let repeat = 1;
-            // Fill up until content width exceeds at least 2.5x container width
             while (marqueeContent.scrollWidth < marqueeContainer.offsetWidth * 2.5 && repeat < 30) {
                 marqueeContent.innerHTML += wordHTML;
                 repeat++;
@@ -737,11 +705,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Initialisiere das Update-Intervall
+    startUpdateInterval();
+
     // Update marquee on load
     updateExpressionsMarquee();
-
-    // Update marquee every 5 minutes
-    setInterval(updateExpressionsMarquee, 300000);
 
     // React to toggle change (central state)
     const observer = new MutationObserver(() => updateExpressionsMarquee());
@@ -973,10 +941,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Automatisches Chain-Update for the marquee ---
     function checkForChainUpdates() {
-        fetchAllExpressions();
+        fetchAllExpressionsBatched();
     }
     // Check every 30 seconds for updates
     setInterval(checkForChainUpdates, 30000);
     // Immediately run on first load
     checkForChainUpdates();
+
+    // Fetch latest token info using the new batched contract logic
+    async function fetchLatestTokenInfo() {
+        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+        const contract = new ethers.Contract(contractAddress, contractABI, provider);
+        const nextTokenId = await contract.nextTokenId();
+        for (let i = nextTokenId - 1n; i >= 1n; i--) {
+            const [expressions, ids] = await contract.getExpressionsInRange(i, i);
+            if (ids.length > 0) {
+                const expr = expressions[0];
+                return {
+                    tokenId: Number(ids[0]),
+                    tendency: expr.isBest ? "best" : "worst",
+                    expression: expr.word
+                };
+            }
+        }
+        // Fallback, if no token exists
+        return {
+            tokenId: 0,
+            tendency: "?",
+            expression: "CHOICE"
+        };
+    }
+
+    // ASCII Bär Animation für die Infobox
+    const bearFrames = [
+        'ʕ◴ᴥ◴ʔ',
+        'ʕ◷ᴥ◷ʔ',
+        'ʕ◶ᴥ◶ʔ',
+        'ʕ◵ᴥ◵ʔ'
+    ];
+    let bearIndex = 0;
+    let bearInterval = null;
+
+    function startBearAnimation() {
+        if (bearInterval) clearInterval(bearInterval);
+        bearInterval = setInterval(() => {
+            const bearElement = document.querySelector('.bear-animation');
+            if (bearElement) {
+                bearElement.textContent = bearFrames[bearIndex];
+                bearIndex = (bearIndex + 1) % bearFrames.length;
+            }
+        }, 400);
+    }
+
+    // Starte die Animation nach dem Laden
+    startBearAnimation();
 }); 

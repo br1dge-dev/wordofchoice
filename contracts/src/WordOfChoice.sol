@@ -175,4 +175,28 @@ contract WordOfChoiceLife is ERC721, Ownable {
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == 0x2a55205a || super.supportsInterface(interfaceId);
     }
+
+    function exists(uint256 tokenId) public view returns (bool) {
+        return _ownerOf(tokenId) != address(0);
+    }
+
+    function getExpressionsInRange(uint256 start, uint256 end) public view returns (Expression[] memory, uint256[] memory) {
+        require(start <= end, "start must be <= end");
+        require(end < nextTokenId, "end out of range");
+        uint256 count = 0;
+        for (uint256 i = start; i <= end; i++) {
+            if (exists(i)) count++;
+        }
+        Expression[] memory result = new Expression[](count);
+        uint256[] memory ids = new uint256[](count);
+        uint256 idx = 0;
+        for (uint256 i = start; i <= end; i++) {
+            if (exists(i)) {
+                result[idx] = expressions[i];
+                ids[idx] = i;
+                idx++;
+            }
+        }
+        return (result, ids);
+    }
 } 

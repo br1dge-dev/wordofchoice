@@ -1404,4 +1404,17 @@ body.toggled .expressions-marquee {
     opacity: 0.5;
     font-size: 1em;
     vertical-align: middle;
+}
+
+.bear-animation {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 1em;
+    color: inherit;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.bear-animation:hover {
+    opacity: 0.7;
 } 
