@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- ALLE DOM-Elemente direkt am Anfang deklarieren ---
+    // --- Declare ALL DOM elements at the top ---
     const body = document.body;
     const toggleButton = document.querySelector('.toggle-button');
     const toggleText = document.querySelector('.toggle-text');
@@ -9,18 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const counter = document.getElementById('counter');
     const mintBtn = document.querySelector('.mint-btn');
     const mintBar = document.querySelector('.mint-bar');
-    // Mobile-Elemente
+    // Mobile elements
     const toggleButtonMobile = document.querySelector('.mobile-headline .toggle-button');
     const toggleTextMobile = document.querySelector('.mobile-headline .toggle-text');
     const highlightMobile = document.getElementById('highlight-word-mobile');
     const editBtnMobile = document.getElementById('edit-btn-mobile');
     const editIconMobile = document.getElementById('edit-icon-mobile');
-    // Buttons-Array erst nach allen Deklarationen
+    // Buttons array after all declarations
     const allButtons = [toggleButton, editBtn, mintBtn];
     if (toggleButtonMobile) allButtons.push(toggleButtonMobile);
     if (editBtnMobile) allButtons.push(editBtnMobile);
 
-    // Zentrale Validierungslogik
+    // Central validation logic
     const ValidationState = {
         VALID: 'valid',
         INVALID: 'invalid',
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         [ValidationState.WORD_EXISTS]: { text: 'GONE', valid: false }
     };
 
-    // Zentrale Validierungsfunktion
+    // Central validation function
     async function validateInput(word) {
         const trimmed = word.trim().toUpperCase();
         
@@ -73,11 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return { state: ValidationState.VALID, feedback: ValidationFeedback[ValidationState.VALID] };
     }
 
-    // UI Update Funktion für Validierungsfeedback
+    // UI update function for validation feedback
     function updateValidationUI(validationResult) {
         const { feedback } = validationResult;
         
-        // Button-Text prüfen
+        // Check button text
         const isMint = mintBtn.textContent.trim().toUpperCase() === 'MINT';
         // Update Mint Button
         if (isMint) {
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mintBtn.classList.add('mint-disabled', 'mint-strikethrough');
             }
         } else {
-            // CONNECT darf nie deaktiviert oder durchgestrichen sein
+            // CONNECT must never be disabled or strikethrough
             mintBtn.disabled = false;
             mintBtn.classList.remove('mint-disabled', 'mint-strikethrough');
         }
@@ -125,11 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const editSVG = `<svg id=\"edit-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><path d=\"M20 12H7M11 8l-4 4 4 4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"/></svg>`;
     const saveSVG = `<svg id=\"save-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\" fill=\"currentColor\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><rect x=\"8\" y=\"16\" width=\"8\" height=\"2\" fill=\"currentColor\"/><rect x=\"8\" y=\"8\" width=\"8\" height=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>`;
 
-    // Initial State merken
+    // Initial state variables
     let initialTendency = null;
     let initialExpression = null;
     let isIdle = false;
-    let loadingInterval = null; // Idle-Interval für Counter global deklarieren
+    let loadingInterval = null; // Idle interval for counter declared globally
     function startIdleCounter() {
         if (loadingInterval) clearInterval(loadingInterval);
         isIdle = true;
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         counter.textContent = `#${tokenId}`;
     }
 
-    // Hilfsfunktion, um nextTokenId vom Contract zu holen und Counter zu setzen
+    // Helper function to get nextTokenId from contract and set counter
     async function showNextTokenIdPlusOne() {
         counter.innerHTML = '<span class="counter-hash">#</span><span class="counter-arrow"><svg class="counter-arrow-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="none"><path d="M20 12H7M11 8l-4 4 4 4" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
     }
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Set Edit-Icon for Desktop and Mobile (identisch, keine Rotation mehr nötig) ---
+    // --- Set Edit-Icon for Desktop and Mobile (identical, no rotation needed anymore) ---
     function setEditIcons() {
         if (editIcon) {
             editIcon.innerHTML = editSVG;
@@ -257,12 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     newState = 'worst';
                     body.classList.remove('toggled');
                 }
-                // Beide Toggle-Text-Elemente synchronisieren
+                // Synchronize both toggle text elements
                 if (toggleText) toggleText.textContent = newState;
                 if (toggleTextMobile) toggleTextMobile.textContent = newState;
                 showNextTokenIdPlusOne();
                 textEl.classList.remove('strikethrough');
-                // Nach Toggle: Validierung für beide Highlights
+                // After toggle: validate both highlights
                 if (highlight) validateAndUpdateUI(highlight.textContent);
                 if (highlightMobile) validateAndUpdateUI(highlightMobile.textContent);
             }, 300);
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupToggleButton(toggleButton, toggleText, false);
     setupToggleButton(toggleButtonMobile, toggleTextMobile, true);
 
-    // --- Nach jedem UI-Update: beide Highlights synchronisieren und validieren ---
+    // --- After every UI update: synchronize and validate both highlights ---
     function updateUIWithTokenInfo(tokenInfo) {
         if (!tokenInfo) return;
         const { tokenId, tendency, expression } = tokenInfo;
@@ -292,12 +292,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tokenId !== undefined) {
             stopIdleCounter(tokenId);
         }
-        // Validierung für beide Highlights
+        // Validation for both highlights
         if (mintBtn.textContent.trim().toUpperCase() === 'MINT') {
             if (highlight) validateAndUpdateUI(expression);
-            if (highlightMobile) validateAndUpdateUI(expression);
+            if (highlightMobile) validateAndUI(expression);
         }
-        // Laufband sofort aktualisieren
+        // Immediately update marquee
         updateExpressionsMarquee();
     }
 
@@ -338,12 +338,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     confirmMintBtn.addEventListener('click', async () => {
         if (pendingMint) {
-            // Werte merken, bevor das Modal geschlossen wird
+            // Store values before closing modal
             const mintParams = pendingMint;
-            closeConfirmationModal(); // Modal schließen, pendingMint wird auf null gesetzt
+            closeConfirmationModal(); // Close modal, pendingMint is set to null
             isMinting = true;
 
-            // Starte Animationen
+            // Start animations
             startIdleCounter();
             let expressionInterval = setInterval(() => {
                 if (highlight) highlight.textContent = animalFrames[animalIndex];
@@ -351,15 +351,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 400);
 
             try {
-                // Mint durchführen (inkl. Wallet-Interaktion)
+                // Mint process (including wallet interaction)
                 await mintExpression(mintParams.isBest, mintParams.word);
 
-                // Nach erfolgreicher Bestätigung: Neue Werte anzeigen
+                // After successful confirmation: show new values
                 clearInterval(expressionInterval);
                 isMinting = false;
                 const tokenInfo = await fetchLatestTokenInfo();
                 updateUIWithTokenInfo(tokenInfo);
-                // --- Idle-Animation nach Mint garantiert stoppen ---
+                // --- Guaranteed stop of idle animation after mint ---
                 if (tokenInfo && tokenInfo.tokenId !== undefined) {
                     stopIdleCounter(tokenInfo.tokenId);
                 }
@@ -375,17 +375,17 @@ document.addEventListener('DOMContentLoaded', () => {
     mintBtn.addEventListener('click', async () => {
         if (mintBtn.disabled) return;
         const word = highlight.textContent.trim();
-        // Prüfe synchron, ob das Wort vergeben ist
+        // Synchronously check if the word is already taken
         const validationResult = await validateInput(word);
         if (validationResult.state === 'WORD_EXISTS') {
             updateValidationUI(validationResult);
-            return; // Modal NICHT öffnen
+            return; // Do NOT open modal
         }
         if (!isConnected) {
             openModal();
         } else {
             const isBest = (toggleText.textContent.trim().toLowerCase() === 'best');
-            // Satz immer zweizeilig
+            // Sentence always two lines
             const headline = isBest ? 'The best thing in' : 'The worst thing in';
             const sentence = `${headline}\nlife is ${word}`;
             const price = '0.01';
@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const connectWalletBtn = document.getElementById('connectWallet');
     const walletStatus = document.getElementById('walletStatus');
 
-    // BASE Sepolia Testnet Daten
+    // BASE Sepolia Testnet data
     const BASE_SEPOLIA_PARAMS = {
         chainId: '0x14a34',
         chainName: 'Base Sepolia Testnet',
@@ -492,10 +492,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function connectWallet() {
         if (typeof window.ethereum !== 'undefined') {
             try {
-                // Prüfe Netzwerk
+                // Check network
                 let chainId = await window.ethereum.request({ method: 'eth_chainId' });
                 if (chainId !== BASE_SEPOLIA_PARAMS.chainId) {
-                    // Versuche automatischen Switch
+                    // Try automatic switch
                     try {
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Listen for account changes
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
                 window.ethereum.on('chainChanged', handleChainChanged);
-                // --- NEU: Nach erfolgreichem Connect die aktuelle Expression validieren ---
+                // --- NEW: After successful connect, validate current expression ---
                 const validationResult = await validateInput(highlight.textContent);
                 updateValidationUI(validationResult);
             } catch (error) {
@@ -617,7 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "stateMutability": "view",
             "type": "function"
         },
-        // Getter für usedWords
+        // Getter for usedWords
         {
             "inputs": [
                 { "internalType": "string", "name": "", "type": "string" }
@@ -631,10 +631,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
-    // Direkt beim Pageload: Token ID, Tendency und Expression anzeigen
+    // On page load: show token ID, tendency and expression
     // fetchAndDisplayLatestTokenInfo();
 
-    // Neue Funktionen für getrennte Datenabfrage und UI-Update
+    // New functions for separated data fetching and UI update
     async function fetchLatestTokenInfo() {
         try {
             const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
@@ -674,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Funktion zum Abrufen aller Expressions
+    // Function to fetch all expressions
     async function fetchAllExpressions() {
         try {
             const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
@@ -683,10 +683,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const nextId = await contract.nextTokenId();
             const expressions = [];
             
-            // Wenn keine Tokens existieren, leer zurückgeben
+            // If no tokens exist, return empty
             if (nextId === 1n) return expressions;
             
-            // Alle existierenden Tokens abrufen
+            // Fetch all existing tokens
             for (let i = 1n; i < nextId; i++) {
                 try {
                     const tokenUri = await contract.tokenURI(i);
@@ -716,20 +716,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Funktion zum Aktualisieren des Laufbands
+    // Function to update the marquee
     async function updateExpressionsMarquee() {
         const expressions = await fetchAllExpressions();
         const marqueeContent = document.querySelector('.expressions-content');
         const marqueeContainer = document.querySelector('.expressions-marquee');
         if (marqueeContent && expressions.length > 0 && marqueeContainer) {
-            // HTML für einen Durchlauf
+            // HTML for one loop
             const wordHTML = expressions.map(({ expression }) => 
                 `<span>${expression}</span>`
             ).join('<span class="dot">&nbsp;&middot;&nbsp;</span>');
-            // Temporär einfügen, um Breite zu messen
+            // Temporarily insert to measure width
             marqueeContent.innerHTML = wordHTML;
             let repeat = 1;
-            // Fülle so oft auf, bis die Breite des Inhalts mindestens das 2,5-fache der Containerbreite überschreitet
+            // Fill up until content width exceeds at least 2.5x container width
             while (marqueeContent.scrollWidth < marqueeContainer.offsetWidth * 2.5 && repeat < 30) {
                 marqueeContent.innerHTML += wordHTML;
                 repeat++;
@@ -737,13 +737,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Laufband beim Laden aktualisieren
+    // Update marquee on load
     updateExpressionsMarquee();
 
-    // Laufband alle 5 Minuten aktualisieren
+    // Update marquee every 5 minutes
     setInterval(updateExpressionsMarquee, 300000);
 
-    // Reagiere auf Toggle-Änderung (zentraler State)
+    // React to toggle change (central state)
     const observer = new MutationObserver(() => updateExpressionsMarquee());
     observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
@@ -755,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Nach Pageload: 4s Idle-Animation für Counter & Expression, Buttons deaktivieren und ausgrauen
+    // After page load: 4s idle animation for counter & expression, disable and gray out buttons
     setAllButtonsEnabled(false);
     pageloadIdleIndex = 0;
     pageloadIdleInterval = setInterval(() => {
@@ -766,20 +766,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 400);
     setTimeout(async () => {
         clearInterval(pageloadIdleInterval);
-        isIdle = false; // Nach der Animation: Counter ist im echten Modus
+        isIdle = false; // After animation: counter is in real mode
         const tokenInfo = await fetchLatestTokenInfo();
         updateUIWithTokenInfo(tokenInfo);
         setAllButtonsEnabled(true);
     }, 2500);
 
-    // Optional: Bei Resize/Orientation Change Buttons erneut aktivieren
+    // Optional: On resize/orientation change, re-enable buttons
     window.addEventListener('resize', () => setAllButtonsEnabled(true));
     window.addEventListener('orientationchange', () => setAllButtonsEnabled(true));
 
-    // Event-Handler für Toggle und Edit: Idle-Animation nur, wenn explizit gewünscht
+    // Event handler for toggle and edit: idle animation only if explicitly desired
     toggleButton.addEventListener('click', () => {
         setTimeout(() => {
-            // Idle-Animation nur, wenn explizit gewünscht (z.B. nach Edit)
+            // Idle animation only if explicitly desired (e.g. after edit)
             if (isIdle && !isInitialState()) startIdleCounter();
             else if (isIdle && isInitialState()) stopIdleCounter(counter.textContent.replace('#',''));
         }, 350);
@@ -843,7 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { file: 'I chose CHILL.mp3', title: 'I chose CHILL' },
         { file: 'Duh Duh Duh.mp3', title: 'Duh Duh Duh' }
     ];
-    // 'Choice is Crunch' immer zuerst, Rest random
+    // 'Choice is Crunch' always first, Rest random
     function shuffle(array) {
         let arr = array.slice(1);
         for (let i = arr.length - 1; i > 0; i--) {
@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let audio = null;
     let isPlaying = false;
     let isLoading = false;
-    let loadedTracks = [false]; // Initial: nichts geladen
+    let loadedTracks = [false]; // Initial: nothing loaded
 
     // Buttons
     const playPauseBtn = document.getElementById('play-pause');
@@ -895,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updatePlayPauseIcon();
             });
         }
-        // src IMMER setzen, wenn nicht gesetzt oder falscher Track
+        // src ALWAYS set, when not set or wrong track
         if (!audio.src || !audio.src.includes(encodeURIComponent(shuffledTracks[idx].file))) {
             audio.src = musicFolder + shuffledTracks[idx].file;
         }
@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await playTrack(currentTrackIndex);
             } catch (e) {
-                console.error('Fehler beim Starten des Players:', e);
+                console.error('Error starting player:', e);
             }
         } else if (isPlaying && !audio.paused) {
             audio.pause();
@@ -937,7 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isPlaying = true;
             } catch (e) {
                 isPlaying = false;
-                console.error('Fehler beim Abspielen:', e);
+                console.error('Error playing:', e);
             }
             updatePlayPauseIcon();
         }
@@ -955,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Icon
     updatePlayPauseIcon();
 
-    // Player periodisch wigglen, wenn keine Musik läuft
+    // Player periodically wiggle when no music is playing
     function triggerPlayerWiggle() {
         if (!isPlaying && playerContainer) {
             playerContainer.classList.add('wiggle');
@@ -964,10 +964,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setInterval(triggerPlayerWiggle, 2500);
 
-    // Helper: Prüfe, ob aktueller Zustand initial ist
+    // Helper: Check if current state is initial
     function isInitialState() {
         return (toggleText && toggleText.textContent === initialTendency) && (highlight && highlight.textContent === initialExpression);
     }
 
     document.body.classList.add('toggled');
+
+    // --- Automatisches Chain-Update for the marquee ---
+    function checkForChainUpdates() {
+        fetchAllExpressions();
+    }
+    // Check every 30 seconds for updates
+    setInterval(checkForChainUpdates, 30000);
+    // Immediately run on first load
+    checkForChainUpdates();
 }); 
