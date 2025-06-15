@@ -297,6 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (highlight) validateAndUpdateUI(expression);
             if (highlightMobile) validateAndUpdateUI(expression);
         }
+        // Laufband sofort aktualisieren
+        updateExpressionsMarquee();
     }
 
     // Global highlight word loader
@@ -671,6 +673,79 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
     }
+
+    // Funktion zum Abrufen aller Expressions
+    async function fetchAllExpressions() {
+        try {
+            const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+            const contract = new ethers.Contract(contractAddress, contractABI, provider);
+            
+            const nextId = await contract.nextTokenId();
+            const expressions = [];
+            
+            // Wenn keine Tokens existieren, leer zurückgeben
+            if (nextId === 1n) return expressions;
+            
+            // Alle existierenden Tokens abrufen
+            for (let i = 1n; i < nextId; i++) {
+                try {
+                    const tokenUri = await contract.tokenURI(i);
+                    const json = atob(tokenUri.split(",")[1]);
+                    const meta = JSON.parse(json);
+                    
+                    let expression = '';
+                    if (meta.attributes && Array.isArray(meta.attributes)) {
+                        for (const attr of meta.attributes) {
+                            if (attr.trait_type === 'Expression') {
+                                expression = attr.value;
+                                break;
+                            }
+                        }
+                    }
+                    if (expression) {
+                        expressions.push({ id: Number(i), expression });
+                    }
+                } catch (error) {
+                    console.error(`Error fetching token ${i}:`, error);
+                }
+            }
+            return expressions;
+        } catch (error) {
+            console.error('Error fetching expressions:', error);
+            return [];
+        }
+    }
+
+    // Funktion zum Aktualisieren des Laufbands
+    async function updateExpressionsMarquee() {
+        const expressions = await fetchAllExpressions();
+        const marqueeContent = document.querySelector('.expressions-content');
+        const marqueeContainer = document.querySelector('.expressions-marquee');
+        if (marqueeContent && expressions.length > 0 && marqueeContainer) {
+            // HTML für einen Durchlauf
+            const wordHTML = expressions.map(({ expression }) => 
+                `<span>${expression}</span>`
+            ).join('<span class="dot">&nbsp;&middot;&nbsp;</span>');
+            // Temporär einfügen, um Breite zu messen
+            marqueeContent.innerHTML = wordHTML;
+            let repeat = 1;
+            // Fülle so oft auf, bis die Breite des Inhalts mindestens das 2,5-fache der Containerbreite überschreitet
+            while (marqueeContent.scrollWidth < marqueeContainer.offsetWidth * 2.5 && repeat < 30) {
+                marqueeContent.innerHTML += wordHTML;
+                repeat++;
+            }
+        }
+    }
+
+    // Laufband beim Laden aktualisieren
+    updateExpressionsMarquee();
+
+    // Laufband alle 5 Minuten aktualisieren
+    setInterval(updateExpressionsMarquee, 300000);
+
+    // Reagiere auf Toggle-Änderung (zentraler State)
+    const observer = new MutationObserver(() => updateExpressionsMarquee());
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
     // Helper function to enable/disable all interactive buttons (desktop & mobile)
     function setAllButtonsEnabled(enabled) {

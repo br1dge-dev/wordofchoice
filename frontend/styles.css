@@ -73,6 +73,7 @@ body::before {
     transition: color 0.5s;
 }
 
+/* Claim-Highlight: Standard hell, toggled dunkel */
 .highlight {
     background-color: #F5E9D4;
     color: #2C241B;
@@ -88,10 +89,21 @@ body::before {
     text-align: center;
     line-height: 1.1;
 }
-
 body.toggled .highlight {
     background-color: #2C241B;
     color: #F5E9D4;
+}
+/* Infobox-Highlight: Standard dunkel, toggled hell */
+.info-highlight {
+    background-color: #2C241B;
+    color: #F5E9D4;
+    font-size: 1em;
+    margin: 0;
+    padding: 0.05em 0.2em;
+}
+body.toggled .info-highlight {
+    background-color: #F5E9D4;
+    color: #2C241B;
 }
 
 .break {
@@ -234,18 +246,10 @@ body.toggled .edit-button {
         font-size: 2.5rem;
     }
     .info-section {
+        height: 9vh;
+        min-height: 9vh;
+        max-height: 9vh;
         padding: 0.7em 1em 0.7em 1em;
-        font-size: 0.95em;
-        min-height: unset;
-        max-height: 18vh;
-        height: auto;
-        border-radius: 0.7em 0.7em 0 0;
-        box-shadow: 0 -1px 8px rgba(44,36,27,0.10);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-direction: row;
-        gap: 0.5em;
     }
     .info-section > div {
         flex-direction: row !important;
@@ -365,6 +369,9 @@ body.toggled .edit-button {
     .mobile-headline .edit-button {
         margin-top: 0.7em;
     }
+    .expressions-marquee {
+        bottom: 9vh;
+    }
 }
 @media (min-width: 1200px) {
     .edit-button svg {
@@ -480,21 +487,27 @@ body.toggled .counter {
 }
 
 .info-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
     position: fixed;
     left: 0;
     bottom: 0;
     width: 100vw;
     margin: 0;
-    padding: 1.2vw 2vw;
+    padding: 0.6vw 2vw;
     background: #F5E9D4;
     color: #2C241B;
     border-radius: 0;
     box-shadow: 0 -4px 32px rgba(44,36,27,0.10);
-    display: block;
     font-family: inherit;
     transition: background 0.5s, color 0.5s;
     z-index: 1001;
     overflow: hidden;
+    height: 4vw;
+    min-height: 4vw;
+    max-height: 4vw;
 }
 .info-section::before {
     content: "";
@@ -513,61 +526,26 @@ body.toggled .counter {
     position: relative;
     z-index: 1;
 }
-
-.info-details-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 2vw;
-    font-size: 1.045vw;
-    opacity: 0.85;
-    margin-top: 0.7vw;
-    margin-bottom: 0.2vw;
-    position: relative;
-}
-
-.version-detail {
-    margin-left: auto;
-    opacity: 0.7;
-    font-style: italic;
-    font-size: 1.045vw;
-    pointer-events: none;
-}
-
-body.toggled .version-detail {
-    color: #F5E9D4;
-}
-
 body.toggled .info-section {
     background: #2C241B;
     color: #F5E9D4;
 }
-
+.info-section > div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2vw;
+}
 .info-headline {
-    font-size: 1.32vw;
-    font-weight: bold;
-    margin-bottom: 0.5vw;
-    margin-top: 0;
-    letter-spacing: 0.01em;
-    display: inline-block;
-    vertical-align: middle;
-    color: #2C241B;
-    opacity: 0.9;
+    font-size: 1em !important;
+    margin-bottom: 0 !important;
+    margin-right: 0.5em !important;
 }
-
 .info-highlight {
-    background: #2C241B;
-    color: #F5E9D4;
-    border-radius: 0.2em;
-    padding: 0 0.3em;
-    font-weight: bold;
     font-size: 1em;
-    transition: background-color 0.5s, color 0.5s;
-}
-body.toggled .info-highlight {
-    background: #F5E9D4;
-    color: #2C241B;
+    margin: 0;
+    padding: 0.05em 0.2em;
 }
 
 .info-text {
@@ -594,8 +572,10 @@ body.toggled .info-highlight {
         font-size: 120%;
     }
     .info-section {
-        padding: 2.4vw 3.6vw;
-        font-size: 1.21em;
+        height: 9vh;
+        min-height: 9vh;
+        max-height: 9vh;
+        padding: 0.7em 1em 0.7em 1em;
     }
     .info-details-row {
         font-size: 2.42vw;
@@ -1340,4 +1320,88 @@ a {
 }
 body.toggled a {
   color: #F5E9D4;
+}
+
+.expressions-marquee {
+    position: fixed;
+    left: 0;
+    bottom: 4vw;
+    width: 100vw;
+    height: 1.2em;
+    min-height: 1.2em;
+    max-height: 1.2em;
+    background: #2C241B;
+    color: #F5E9D4;
+    z-index: 1002;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 0;
+    box-shadow: 0 -4px 32px rgba(44,36,27,0.10);
+    padding: 0;
+    line-height: 1.2;
+    transition: background 0.5s, color 0.5s;
+}
+body.toggled .expressions-marquee {
+    background: #F5E9D4;
+    color: #2C241B;
+}
+
+.expressions-content span {
+    display: inline-block;
+    margin-right: 0.7em;
+    font-size: 1em;
+    opacity: 0.8;
+    transition: opacity 0.3s, color 0.5s;
+    font-weight: bold;
+    color: inherit;
+}
+
+@media (min-width: 601px) {
+    .expressions-marquee {
+        height: 1.2em;
+        min-height: 1.2em;
+        max-height: 1.2em;
+        bottom: 4vw;
+    }
+}
+
+@media (max-width: 900px) {
+    .expressions-marquee {
+        bottom: 9vh;
+    }
+}
+
+@media (max-width: 600px) {
+    .expressions-marquee {
+        bottom: 9vh;
+    }
+}
+
+.expressions-content {
+    display: inline-block;
+    animation: marquee 22.5s linear infinite;
+    padding-right: 2em;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.expressions-content span:hover {
+    opacity: 1;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.expressions-content.toggled span {
+    color: #F5E9D4;
+}
+
+.dot {
+    margin: 0 0.25em;
+    opacity: 0.5;
+    font-size: 1em;
+    vertical-align: middle;
 } 
