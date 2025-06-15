@@ -202,13 +202,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.addEventListener('blur', async () => {
                     await saveEditInput();
                 });
+            } else {
+                // When in edit mode and button is clicked
+                await saveEditInput();
             }
             async function saveEditInput() {
                 let newWord = input.value.trim().toUpperCase();
                 const validation = await validateInput(newWord);
+                
+                // Remove input field first
+                if (input && input.parentNode) {
+                    input.parentNode.removeChild(input);
+                }
+                
+                // Restore display
+                if (isMobile) highlightMobile.style.display = '';
+                else highlight.style.display = '';
+                
+                // Update text based on validation
                 if (!validation.feedback.valid) {
-                    if (isMobile) highlightMobile.style.display = '';
-                    else highlight.style.display = '';
                     if (validation.state === ValidationState.EMPTY) {
                         if (isMobile) highlightMobile.textContent = 'EMPTY';
                         else highlight.textContent = 'EMPTY';
@@ -216,21 +228,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (isMobile) highlightMobile.textContent = newWord || 'ʕ◔ϖ◔ʔ';
                         else highlight.textContent = newWord || 'ʕ◔ϖ◔ʔ';
                     }
-                    updateValidationUI(validation);
                 } else {
                     if (isMobile) highlightMobile.textContent = newWord;
                     else highlight.textContent = newWord;
                     mintClicked = false;
                     lastMintedWord = null;
-                    updateValidationUI(validation);
                 }
-                if (input && input.parentNode) {
-                    input.parentNode.removeChild(input);
-                }
-                if (isMobile) highlightMobile.style.display = '';
-                else highlight.style.display = '';
+                
+                updateValidationUI(validation);
                 isEditing = false;
-                setTimeout(() => {}, 350);
+                icon.innerHTML = editSVG; // Reset to edit icon
             }
         });
     }
