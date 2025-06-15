@@ -549,7 +549,7 @@ body.toggled .info-section {
 }
 
 .info-text {
-    font-size: 1.1vw;
+    font-size: 1em;
     margin-bottom: 0.7vw;
     margin-top: 0;
 }
@@ -587,7 +587,7 @@ body.toggled .info-section {
         font-size: 3.025vw;
     }
     .info-text, .info-details, .mint-detail, .cost-detail, .social-detail {
-        font-size: 2.42vw;
+        font-size: 1em;
     }
     .toggle-button, .edit-button {
         font-size: 4.2vw;
