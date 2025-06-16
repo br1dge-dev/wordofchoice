@@ -1,3 +1,5 @@
+import { JsonRpcProvider, BrowserProvider, Contract, parseEther } from 'ethers';
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Declare ALL DOM elements at the top ---
     const body = document.body;
@@ -635,8 +637,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Batched fetch for all expressions
     async function fetchAllExpressionsBatched(batchSize = 200) {
-        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-        const contract = new ethers.Contract(contractAddress, contractABI, provider);
+        const provider = new JsonRpcProvider('https://sepolia.base.org');
+        const contract = new Contract(contractAddress, contractABI, provider);
         const allExpressions = [];
         const allIds = [];
         const nextTokenId = await contract.nextTokenId();
@@ -732,7 +734,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // After page load: 4s idle animation for counter & expression, disable and gray out buttons
     setAllButtonsEnabled(false);
-    pageloadIdleIndex = 0;
+    let pageloadIdleIndex = 0;
+    let pageloadIdleInterval = null;
     pageloadIdleInterval = setInterval(() => {
         counter.textContent = '#' + animalFrames[pageloadIdleIndex];
         if (highlight) highlight.textContent = animalFrames[pageloadIdleIndex];
@@ -788,14 +791,14 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Please install MetaMask!");
             return;
         }
-        const provider = new ethers.BrowserProvider(window.ethereum);
+        const provider = new BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
-        const contract = new ethers.Contract(
+        const contract = new Contract(
             contractAddress,
             contractABI,
             signer
         );
-        const value = ethers.parseEther("0.01");
+        const value = parseEther("0.01");
         try {
             const tx = await contract.express(isBest, word, { value });
             await tx.wait();
@@ -957,8 +960,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch latest token info using the new batched contract logic
     async function fetchLatestTokenInfo() {
-        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-        const contract = new ethers.Contract(contractAddress, contractABI, provider);
+        const provider = new JsonRpcProvider('https://sepolia.base.org');
+        const contract = new Contract(contractAddress, contractABI, provider);
         const nextTokenId = await contract.nextTokenId();
         for (let i = nextTokenId - 1n; i >= 1n; i--) {
             const [expressions, ids] = await contract.getExpressionsInRange(i, i);
@@ -1002,4 +1005,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Starte die Animation nach dem Laden
     startBearAnimation();
+
+    // Prüfe auf mehrfachen Provider-Konflikt und zeige Warnung an
+    if (window.ethereum && window.ethereum._multipleProviders) {
+        alert('Warnung: Mehrere Wallet-Provider erkannt! Bitte deaktiviere alle bis auf MetaMask für eine fehlerfreie Nutzung.');
+    }
 }); 
