@@ -1,16 +1,14 @@
 {
+  "rootDirectory": "frontend",
   "builds": [
     {
-      "src": "frontend/index.html",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "src": "index.html",
+      "use": "@vercel/static-build"
     }
   ],
   "routes": [
     { "src": "/(.*)", "dest": "/index.html" }
   ],
-  "outputDirectory": "dist",
+  "outputDirectory": "../dist",
   "buildCommand": "npm run build"
 } 
