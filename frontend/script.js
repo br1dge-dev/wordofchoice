@@ -58,8 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return { state: ValidationState.INVALID, feedback: { text: 'TOO LONG', valid: false } };
         }
 
-        // Word already exists
+        // Word already exists - Optimierte Prüfung
         if (usedWordsSet.has(trimmed)) {
+            // Sofortige UI-Aktualisierung
+            updateValidationUI({ state: ValidationState.WORD_EXISTS, feedback: ValidationFeedback[ValidationState.WORD_EXISTS] });
             return { state: ValidationState.WORD_EXISTS, feedback: ValidationFeedback[ValidationState.WORD_EXISTS] };
         }
 
@@ -73,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Check button text
         const isMint = mintBtn.textContent.trim().toUpperCase() === 'MINT';
+        
         // Update Mint Button
         if (isMint) {
             mintBtn.disabled = !feedback.valid;
@@ -87,11 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
             mintBtn.classList.remove('mint-disabled', 'mint-strikethrough');
         }
 
-        // Update Info Box
+        // Update Info Box - Optimierte Aktualisierung
         if (mintInfoBox) {
-            mintBar.removeChild(mintInfoBox);
+            if (mintBar.contains(mintInfoBox)) {
+                mintBar.removeChild(mintInfoBox);
+            }
             mintInfoBox = null;
         }
+        
         if (!feedback.valid && isMint) {
             mintInfoBox = document.createElement('div');
             mintInfoBox.className = 'mint-info-box';
@@ -100,7 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div>is</div>
                 <div><span class="highlight info-highlight">${feedback.text}</span></div>
             `;
-            mintBar.appendChild(mintInfoBox);
+            // Sofortiges Hinzufügen zur UI
+            requestAnimationFrame(() => {
+                mintBar.appendChild(mintInfoBox);
+            });
         }
     }
 
@@ -633,24 +642,38 @@ document.addEventListener('DOMContentLoaded', () => {
         "function getExpressionsInRange(uint256 start, uint256 end) public view returns (tuple(bool isBest, string word, uint256 timestamp)[] memory, uint256[] memory)",
     ];
 
-    // Batched fetch for all expressions
+    // Optimierte Aktualisierung der usedWordsSet
     async function fetchAllExpressionsBatched(batchSize = 200) {
         const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
         const contract = new ethers.Contract(contractAddress, contractABI, provider);
         const allExpressions = [];
         const allIds = [];
         const nextTokenId = await contract.nextTokenId();
+        
+        // Optimierte Batch-Verarbeitung
+        const batches = [];
         for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
             let end = nextTokenId - 1n;
             if (start + BigInt(batchSize) - 1n < end) {
                 end = start + BigInt(batchSize) - 1n;
             }
-            const [expressions, ids] = await contract.getExpressionsInRange(start, end);
+            batches.push([start, end]);
+        }
+        
+        // Parallele Verarbeitung der Batches
+        const results = await Promise.all(
+            batches.map(([start, end]) => contract.getExpressionsInRange(start, end))
+        );
+        
+        results.forEach(([expressions, ids]) => {
             allExpressions.push(...expressions);
             allIds.push(...ids);
-        }
-        // Set für word is gone Validierung aktualisieren
-        usedWordsSet = new Set(allExpressions.map(expr => (expr.word || expr[1] || '').toUpperCase()));
+        });
+        
+        // Sofortige Aktualisierung des usedWordsSet
+        const newUsedWordsSet = new Set(allExpressions.map(expr => (expr.word || expr[1] || '').toUpperCase()));
+        usedWordsSet = newUsedWordsSet;
+        
         return allExpressions.map((expr, i) => ({
             ...expr,
             tokenId: Number(allIds[i])
