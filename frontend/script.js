@@ -330,11 +330,40 @@ document.addEventListener('DOMContentLoaded', () => {
     let pendingMint = null;
 
     function openConfirmationModal(sentence, price, mintParams) {
-        confirmationSentence.textContent = sentence;
-        confirmationPrice.textContent = price;
+        // SVG Preview erzeugen
+        const svg = generateSVGPreview(mintParams.isBest, mintParams.word);
+        const previewDiv = document.getElementById('confirmationSVGPreview');
+        previewDiv.innerHTML = svg;
+        previewDiv.firstChild.style.maxWidth = '240px';
+        previewDiv.firstChild.style.width = '60%';
+        previewDiv.firstChild.style.height = 'auto';
+        // Preis-Block entfernen
+        const priceBox = document.getElementById('confirmationPriceBox');
+        if (priceBox) priceBox.style.display = 'none';
+        // Confirm-Button umbenennen
+        const confirmBtn = document.getElementById('confirmMintBtn');
+        if (confirmBtn) confirmBtn.textContent = 'mint for 0.01';
+        // Cancel-Button entfernen
+        const cancelBtn = document.getElementById('cancelMintBtn');
+        if (cancelBtn) cancelBtn.style.display = 'none';
         confirmationModal.style.display = 'flex';
         pendingMint = mintParams;
     }
+
+    // SVG-Preview-Generator (angepasst an Smart Contract Logik)
+    function generateSVGPreview(isBest, word) {
+        const colorBg = isBest ? '#F5E9D4' : '#2C241B';
+        const colorFg = isBest ? '#2C241B' : '#F5E9D4';
+        const headline = isBest ? 'The best thing in' : 'The worst thing in';
+        return `<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'>
+          <rect width='100%' height='100%' fill='${colorBg}'/>
+          <text x='50%' y='22%' text-anchor='middle' font-size='32' font-family='Arial' fill='${colorFg}' font-weight='bold'>${headline}</text>
+          <text x='50%' y='40%' text-anchor='middle' font-size='28' font-family='Arial' fill='${colorFg}'>life is</text>
+          <rect x='40' y='180' width='320' height='80' rx='18' fill='${colorFg}'/>
+          <text x='50%' y='235' text-anchor='middle' font-size='48' font-family='Arial' fill='${colorBg}' font-weight='bold' letter-spacing='2'>${word}</text>
+        </svg>`;
+    }
+
     function closeConfirmationModal() {
         confirmationModal.style.display = 'none';
         pendingMint = null;

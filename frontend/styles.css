@@ -1038,6 +1038,7 @@ body.toggled .wallet-btn:hover {
     max-width: 520px;
     min-width: 320px;
     padding: 2.7em 2em;
+    margin-top: 6vh !important;
 }
 .confirmation-details {
     width: 100%;
