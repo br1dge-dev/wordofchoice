@@ -692,9 +692,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         pauseTimeout = setTimeout(() => {
             isPaused = false;
-            // Starte Intervall neu nach Pause
+            // Restart interval after pause
             startUpdateInterval();
-        }, 5000); // 5 Sekunden Pause
+        }, 20000); // 20 seconds pause
     }
 
     function startUpdateInterval() {

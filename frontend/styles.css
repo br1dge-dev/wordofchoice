@@ -372,6 +372,10 @@ body.toggled .edit-button {
     .expressions-marquee {
         bottom: 9vh;
     }
+    .music-player-container {
+        margin-top: 2.5em !important;
+        margin-bottom: 1.5em !important;
+    }
 }
 @media (min-width: 1200px) {
     .edit-button svg {
