@@ -359,12 +359,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const colorBg = isBest ? '#F5E9D4' : '#2C241B';
         const colorFg = isBest ? '#2C241B' : '#F5E9D4';
         const headline = isBest ? 'The best thing in' : 'The worst thing in';
-        return `<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'>
-          <rect width='100%' height='100%' fill='${colorBg}'/>
-          <text x='50%' y='22%' text-anchor='middle' font-size='32' font-family='Arial' fill='${colorFg}' font-weight='bold'>${headline}</text>
-          <text x='50%' y='40%' text-anchor='middle' font-size='28' font-family='Arial' fill='${colorFg}'>life is</text>
-          <rect x='40' y='180' width='320' height='80' rx='18' fill='${colorFg}'/>
-          <text x='50%' y='235' text-anchor='middle' font-size='48' font-family='Arial' fill='${colorBg}' font-weight='bold' letter-spacing='2'>${word}</text>
+        // Counter-Box und Unterstreichung wie im echten NFT
+        return `<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 500 500' style='border-radius:24px;'>
+          <rect width='500' height='500' fill='${colorBg}'/>
+          <rect x='24' y='24' width='100' height='40' rx='11' fill='${colorFg}'/>
+          <text x='74' y='48' font-size='28' fill='${colorBg}' font-family='Arial, sans-serif' font-weight='bold' text-anchor='middle' dominant-baseline='middle'>#?</text>
+          <text x='250' y='220' font-size='40' fill='${colorFg}' font-family='Arial, sans-serif' font-weight='bold' text-anchor='middle'>${headline}</text>
+          <g>
+            <text x='130' y='312' font-size='40' fill='${colorFg}' font-family='Arial, sans-serif' font-weight='bold' text-anchor='end'>
+              <tspan font-weight='bold' text-decoration='underline'>life</tspan> is
+            </text>
+            <rect x='135' y='266' width='350' height='64' rx='11' fill='${colorFg}'/>
+            <text x='310' y='298' font-size='56' fill='${colorBg}' font-family='Arial, sans-serif' font-weight='bold' text-anchor='middle' dominant-baseline='middle'>${word}</text>
+          </g>
         </svg>`;
     }
 
