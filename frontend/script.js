@@ -334,15 +334,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const svg = generateSVGPreview(mintParams.isBest, mintParams.word);
         const previewDiv = document.getElementById('confirmationSVGPreview');
         previewDiv.innerHTML = svg;
-        previewDiv.firstChild.style.maxWidth = '240px';
-        previewDiv.firstChild.style.width = '60%';
+        previewDiv.firstChild.style.maxWidth = '280px';
+        previewDiv.firstChild.style.width = '70%';
         previewDiv.firstChild.style.height = 'auto';
         // Preis-Block entfernen
         const priceBox = document.getElementById('confirmationPriceBox');
         if (priceBox) priceBox.style.display = 'none';
-        // Confirm-Button umbenennen
+        // Confirm-Button umbenennen und größer machen
         const confirmBtn = document.getElementById('confirmMintBtn');
-        if (confirmBtn) confirmBtn.textContent = 'mint for 0.01';
+        if (confirmBtn) {
+            confirmBtn.textContent = 'Mint for 0.0069 Ξ';
+            confirmBtn.style.fontSize = '1.35em';
+            confirmBtn.style.padding = '0.45em 0.7em';
+        }
         // Cancel-Button entfernen
         const cancelBtn = document.getElementById('cancelMintBtn');
         if (cancelBtn) cancelBtn.style.display = 'none';

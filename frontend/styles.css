@@ -1037,7 +1037,7 @@ body.toggled .wallet-btn:hover {
 .confirmation-modal-content {
     max-width: 520px;
     min-width: 320px;
-    padding: 2.7em 2em;
+    padding: 1.2em 0.7em 1.1em 0.7em !important;
     margin-top: 6vh !important;
 }
 .confirmation-details {
@@ -1104,12 +1104,18 @@ body.toggled .wallet-btn:hover {
     margin: 1.5em auto 0 auto;
     gap: 1.2em;
 }
-.confirmation-btn.wide {
-    width: 48%;
-    min-width: 120px;
-    font-size: 1.13em;
-    padding: 0.22em 0.7em;
-    margin: 0;
+.confirmation-btn.wide, #confirmMintBtn {
+    background: #2C241B !important;
+    color: #F5E9D4 !important;
+    border: none !important;
+    font-weight: bold;
+    border-radius: 0.3em;
+    box-shadow: 0 2px 8px rgba(44,36,27,0.08);
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+}
+.confirmation-btn.wide:hover, #confirmMintBtn:hover {
+    background: #F5E9D4 !important;
+    color: #2C241B !important;
 }
 @media (max-width: 600px) {
     .confirmation-highlight-group {
