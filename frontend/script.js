@@ -869,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
             playPauseIcon.innerHTML = '⏸';
             playerContainer.classList.add('music-playing');
         } else {
-            playPauseIcon.innerHTML = '▶';
+            playPauseIcon.innerHTML = '♬';
             playerContainer.classList.remove('music-playing');
         }
     }
