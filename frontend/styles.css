@@ -1039,60 +1039,49 @@ body.toggled .wallet-btn:hover {
     min-width: 320px;
     width: 90vw;
     height: auto;
-    aspect-ratio: 1/1;
-    padding: 1.2em 0.7em 1.1em 0.7em !important;
+    padding: 1em 0.7em 0.7em 0.7em !important;
     margin-top: 6vh !important;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    box-sizing: border-box;
 }
 #confirmationSVGPreview {
-    width: 70%;
-    max-width: 280px;
-    margin: 0 auto 1em auto;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto 0.1em auto;
+    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
+    margin-bottom: 1.2em;
+}
+#confirmationSVGPreview svg {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 340px;
+    border-radius: 24px;
+    display: block;
+    margin: 0 auto;
 }
 #confirmMintBtn {
-    width: 70%;
-    max-width: 280px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: 340px;
+    margin: 0.1em auto 0 auto;
     display: block;
+    margin-top: 0.5em;
 }
-.confirmation-details {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 2em;
-    font-size: 1.25em;
-    color: inherit;
-}
+.confirmation-details,
+.confirmation-highlight-group,
+.confirmation-actions.wide,
+.confirmation-price,
 .confirmation-sentence {
-    font-weight: bold;
-    margin-bottom: 0.7em;
-    font-size: 1.18em;
-    letter-spacing: 0.01em;
-}
-.confirmation-price {
-    font-size: 1.1em;
-    margin-bottom: 0.2em;
-    color: inherit;
-}
-.confirmation-actions {
-    display: flex;
-    flex-direction: row;
-    gap: 1.2em;
-    justify-content: center;
-    width: 100%;
-}
-.confirmation-highlight-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    gap: 0.7em;
-    margin-bottom: 2.2em;
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
 }
 .confirmation-sentence.highlight.info-highlight,
 .confirmation-price.highlight.info-highlight {

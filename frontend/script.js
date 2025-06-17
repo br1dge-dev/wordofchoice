@@ -322,10 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Confirmation Modal ---
     const confirmationModal = document.getElementById('confirmationModal');
-    const confirmationSentence = document.getElementById('confirmationSentence');
-    const confirmationPrice = document.getElementById('confirmationPrice');
     const confirmMintBtn = document.getElementById('confirmMintBtn');
-    const cancelMintBtn = document.getElementById('cancelMintBtn');
     const closeConfirmation = document.getElementById('closeConfirmation');
     let pendingMint = null;
 
@@ -347,9 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmBtn.style.fontSize = '1.35em';
             confirmBtn.style.padding = '0.45em 0.7em';
         }
-        // Cancel-Button entfernen
-        const cancelBtn = document.getElementById('cancelMintBtn');
-        if (cancelBtn) cancelBtn.style.display = 'none';
         confirmationModal.style.display = 'flex';
         pendingMint = mintParams;
     }
@@ -380,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
         pendingMint = null;
     }
     closeConfirmation.addEventListener('click', closeConfirmationModal);
-    cancelMintBtn.addEventListener('click', closeConfirmationModal);
     window.addEventListener('click', (event) => {
         if (event.target === confirmationModal) {
             closeConfirmationModal();
