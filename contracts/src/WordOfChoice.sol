@@ -5,13 +5,14 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title WordOfChoiceLife
  * @dev ERC721 token contract for minting expressions with words
  * @custom:security-contact security@wordofchoice.xyz
  */
-contract WordOfChoiceLife is ERC721, Ownable {
+contract WordOfChoiceLife is ERC721, Ownable, ReentrancyGuard {
     using Strings for uint256;
 
     // Struct to store expression data
@@ -79,7 +80,7 @@ contract WordOfChoiceLife is ERC721, Ownable {
     /**
      * @dev Withdraws contract balance to owner
      */
-    function withdraw() external onlyOwner {
+    function withdraw() external onlyOwner nonReentrant {
         payable(owner()).transfer(address(this).balance);
     }
 
@@ -176,7 +177,7 @@ contract WordOfChoiceLife is ERC721, Ownable {
         return interfaceId == 0x2a55205a || super.supportsInterface(interfaceId);
     }
 
-    function exists(uint256 tokenId) public view returns (bool) {
+    function exists(uint256 tokenId) internal view returns (bool) {
         return _ownerOf(tokenId) != address(0);
     }
 
