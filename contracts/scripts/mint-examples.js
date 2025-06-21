@@ -25,10 +25,10 @@ async function main() {
   const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
   const words = [
-    "GO",      // 2 Zeichen
-    "WAVE",    // 4 Zeichen
-    "SPIRIT",  // 6 Zeichen
-    "SUNLIGHT" // 8 Zeichen
+    "TEST",     // 4 Zeichen
+    "NEW",      // 3 Zeichen
+    "FRESH",    // 5 Zeichen
+    "COOL"      // 4 Zeichen
   ];
 
   console.log("Minting with wallet:", wallet.address);
