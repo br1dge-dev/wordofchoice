@@ -5,7 +5,7 @@ describe("WordOfChoice", function () {
   let wordOfChoice;
   let owner;
   let user;
-  const mintPrice = ethers.parseEther("0.01");
+  const mintPrice = ethers.parseEther("0.0069");
 
   beforeEach(async function () {
     [owner, user] = await ethers.getSigners();

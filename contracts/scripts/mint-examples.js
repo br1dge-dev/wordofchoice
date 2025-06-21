@@ -5,14 +5,14 @@ const fs = require('fs');
 
 // Contract ABI (nur relevante Funktionen)
 const abi = [
-  "function mintExpression(bool isBest, string word) public payable",
+  "function express(bool isBest, string word) public payable",
 ];
 
 // Werte aus .env
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const RPC_URL = process.env.RPC_URL || process.env.BASE_SEPOLIA_RPC_URL;
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "0x48279F9ccc5C82315553141a79FB16cC1680a196";
-const MINT_PRICE = ethers.parseEther("0.01");
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "0xB9D9372a4A54133Bd2543bc3c8458025F224d616";
+const MINT_PRICE = ethers.parseEther("0.0069");
 
 if (!PRIVATE_KEY || !RPC_URL) {
   console.error("Bitte PRIVATE_KEY und RPC_URL in der .env setzen!");
@@ -38,7 +38,7 @@ async function main() {
   for (const v of variants) {
     try {
       console.log(`Minting: ${v.isBest ? 'best' : 'worst'} + ${v.word}`);
-      const tx = await contract.mintExpression(v.isBest, v.word, { value: MINT_PRICE });
+      const tx = await contract.express(v.isBest, v.word, { value: MINT_PRICE });
       console.log('  → TX sent:', tx.hash);
       const receipt = await tx.wait();
       console.log('  ✓ Minted! Block:', receipt.blockNumber);
@@ -56,7 +56,7 @@ async function createTomorrowSVG() {
     "function tokenURI(uint256 tokenId) public view returns (string)"
   ];
   const provider = new ethers.JsonRpcProvider(process.env.RPC_URL || process.env.BASE_SEPOLIA_RPC_URL);
-  const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, abi, provider);
+  const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS || "0xB9D9372a4A54133Bd2543bc3c8458025F224d616", abi, provider);
   // Simuliere Token mit Toggle: Best, Word: TOMORROW
   // Da der Contract onchain generiert, kann man das SVG aus tokenURI extrahieren
   // Alternativ: SVG-String direkt aus _generateSVG nachbauen (hier: manuell)

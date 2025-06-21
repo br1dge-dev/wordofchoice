@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Sentence always two lines
             const headline = isBest ? 'The best thing in' : 'The worst thing in';
             const sentence = `${headline}\nlife is ${word}`;
-            const price = '0.01';
+            const price = '0.0069';
             openConfirmationModal(sentence, price, { isBest, word });
         }
     });
@@ -625,8 +625,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     connectWalletBtn.addEventListener('click', connectWallet);
 
-    // Contract address (Sepolia, Stand Juni 2025)
-    const contractAddress = "0xB15E15Ad4f46d6318b877Fd400764aa99CcD58c7";
+    // Contract address (Sepolia, Stand Januar 2025)
+    const contractAddress = "0xB9D9372a4A54133Bd2543bc3c8458025F224d616";
 
     // Contract ABI (nur relevante Funktionen)
     const contractABI = [
@@ -851,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contractABI,
             signer
         );
-        const value = ethers.parseEther("0.01");
+        const value = ethers.parseEther("0.0069");
         try {
             const tx = await contract.express(isBest, word, { value });
             await tx.wait();

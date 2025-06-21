@@ -23,7 +23,7 @@ contract WordOfChoiceLife is ERC721, Ownable {
 
     // State variables
     uint256 public nextTokenId = 1;
-    uint256 public mintPrice = 0.01 ether;
+    uint256 public mintPrice = 0.0069 ether;
     mapping(uint256 => Expression) public expressions;
     mapping(string => bool) public usedWords; // Track used words to prevent duplicates
 
