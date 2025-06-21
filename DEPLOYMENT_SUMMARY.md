@@ -6,9 +6,11 @@
 - ✅ Mint-Preis von **0.01 ETH** auf **0.0069 ETH** geändert
 - ✅ Contract erfolgreich auf BASE Sepolia Testnet deployt
 - ✅ Contract erfolgreich auf BaseScan verifiziert
+- ✅ Reentrancy-Schutz für withdraw-Funktion hinzugefügt
+- ✅ `exists` Funktion auf `internal` gesetzt
 
 ### **Frontend (script.js)**
-- ✅ Contract-Adresse aktualisiert: `0xB9D9372a4A54133Bd2543bc3c8458025F224d616`
+- ✅ Contract-Adresse aktualisiert: `0xa152243ee777DD305eBB0F46bF21CE6601CDd9Ec`
 - ✅ Mint-Preis in `mintExpression()` Funktion: `0.0069 ETH` (ruft `express()` auf)
 - ✅ Mint-Preis in `openConfirmationModal()`: `0.0069`
 - ✅ Bestätigungs-Button zeigt: `Mint for 0.0069 Ξ`
@@ -24,8 +26,8 @@
 ## 🔗 Contract Details
 
 **Network**: BASE Sepolia Testnet  
-**Contract Address**: `0xB9D9372a4A54133Bd2543bc3c8458025F224d616`  
-**BaseScan URL**: https://sepolia.basescan.org/address/0xB9D9372a4A54133Bd2543bc3c8458025F224d616  
+**Contract Address**: `0xa152243ee777DD305eBB0F46bF21CE6601CDd9Ec`  
+**BaseScan URL**: https://sepolia.basescan.org/address/0xa152243ee777DD305eBB0F46bF21CE6601CDd9Ec  
 **Mint Price**: 0.0069 ETH  
 **Deployer**: `0x11ac5dDE6E09Fd2881Db69f169cbEA7C4489F7d7`
 
