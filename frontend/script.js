@@ -752,7 +752,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function updateExpressionsMarquee() {
         if (isPaused) return;
         const expressions = await fetchAllExpressionsBatched();
-        console.log('Marquee expressions:', expressions);
         const marqueeContent = document.querySelector('.expressions-content');
         const marqueeContainer = document.querySelector('.expressions-marquee');
         if (marqueeContent && expressions.length > 0 && marqueeContainer) {
