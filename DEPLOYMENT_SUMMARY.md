@@ -9,7 +9,7 @@
 
 ### **Frontend (script.js)**
 - ✅ Contract-Adresse aktualisiert: `0xB9D9372a4A54133Bd2543bc3c8458025F224d616`
-- ✅ Mint-Preis in `mintExpression()` Funktion: `0.0069 ETH`
+- ✅ Mint-Preis in `mintExpression()` Funktion: `0.0069 ETH` (ruft `express()` auf)
 - ✅ Mint-Preis in `openConfirmationModal()`: `0.0069`
 - ✅ Bestätigungs-Button zeigt: `Mint for 0.0069 Ξ`
 
