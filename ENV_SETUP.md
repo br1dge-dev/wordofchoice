@@ -9,7 +9,9 @@ wordofchoice/
 ├── contracts/
 │   └── hardhat.config.js  # Verwendet ../.env
 └── frontend/
-    └── script.js          # Kann VITE_ Variablen verwenden
+    ├── index.html         # Einfaches HTML/CSS/JS Setup
+    ├── script.js          # Vanilla JavaScript
+    └── styles.css         # CSS Styles
 ```
 
 ## 🔐 Umgebungsvariablen
@@ -27,7 +29,7 @@ BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
 BASESCAN_API_KEY=your_basescan_api_key_here
 ```
 
-### **Frontend Variablen (VITE_ Prefix)**
+### **Frontend-Variablen (Optional für zukünftige Verwendung)**
 ```bash
 # Contract Addresses
 VITE_CONTRACT_ADDRESS_SEPOLIA=0xB9D9372a4A54133Bd2543bc3c8458025F224d616
@@ -67,16 +69,13 @@ VITE_MINT_PRICE=0.0069
    ```bash
    # Contract Dependencies
    cd contracts && npm install
-   
-   # Root Dependencies (falls vorhanden)
-   cd .. && npm install
    ```
 
 ## 🔒 Sicherheit
 
 - **`.env`** ist in `.gitignore` und wird nicht committed
 - **`.env.example`** enthält keine echten Secrets
-- **VITE_ Variablen** sind im Frontend sichtbar (nur öffentliche Daten)
+- **VITE_ Variablen** sind für zukünftige Vite-Integration vorbereitet
 - **PRIVATE_KEY** nur für Contract-Deployment, nie im Frontend
 
 ## 📝 Verwendung
@@ -93,17 +92,25 @@ cd frontend
 python3 -m http.server 8000
 ```
 
-### **Frontend mit Vite (falls gewünscht)**
-```bash
-# VITE_ Variablen sind automatisch verfügbar
-console.log(import.meta.env.VITE_CONTRACT_ADDRESS_SEPOLIA);
+### **Aktuelles Frontend**
+Das Frontend verwendet **Vanilla JavaScript** und ist direkt in `script.js` konfiguriert:
+```javascript
+// Contract address (Sepolia, Stand Januar 2025)
+const contractAddress = "0xB9D9372a4A54133Bd2543bc3c8458025F224d616";
+```
+
+### **Zukünftige Vite-Integration (Optional)**
+Falls das Frontend später auf Vite umgestellt wird, sind die VITE_ Variablen bereits vorbereitet:
+```javascript
+// In einem zukünftigen Vite-Setup
+const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_SEPOLIA;
 ```
 
 ## 🔄 Migration von alter Struktur
 
-Die alte `.env` Datei in `contracts/` kann gelöscht werden:
+Die alte `.env` Datei in `contracts/` wurde entfernt:
 ```bash
-rm contracts/.env
+rm contracts/.env  # Bereits erledigt
 ```
 
 Alle Skripte verwenden jetzt die zentrale `.env` Datei im Root-Verzeichnis. 
