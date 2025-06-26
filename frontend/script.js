@@ -1,4 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
+let cachedTokenInfo = null;
+let tokenInfoFetchError = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
     // --- Declare ALL DOM elements at the top ---
     const body = document.body;
     const toggleButton = document.querySelector('.toggle-button');
@@ -424,7 +427,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // After successful confirmation: show new values
                 clearInterval(expressionInterval);
                 isMinting = false;
-                const tokenInfo = await fetchLatestTokenInfo();
+                const tokenInfo = await robustFetchLatestTokenInfo();
+                console.log('[Mint] TokenInfo nach Mint:', tokenInfo);
                 updateUIWithTokenInfo(tokenInfo);
                 // --- Guaranteed stop of idle animation after mint ---
                 if (tokenInfo && tokenInfo.tokenId !== undefined) {
@@ -786,7 +790,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateInterval = setInterval(async () => {
             if (!isPaused) {
                 // Aktualisiere alle dynamischen Elemente
-                const tokenInfo = await fetchLatestTokenInfo();
+                const tokenInfo = await robustFetchLatestTokenInfo();
+                console.log('[Intervall] TokenInfo:', tokenInfo);
                 updateUIWithTokenInfo(tokenInfo);
                 updateExpressionsMarquee();
             }
@@ -845,13 +850,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (highlightMobile) highlightMobile.textContent = animalFrames[pageloadIdleIndex];
         pageloadIdleIndex = (pageloadIdleIndex + 1) % animalFrames.length;
     }, 400);
-    setTimeout(async () => {
-        clearInterval(pageloadIdleInterval);
-        isIdle = false; // After animation: counter is in real mode
-        const tokenInfo = await fetchLatestTokenInfo();
-        updateUIWithTokenInfo(tokenInfo);
-        setAllButtonsEnabled(true);
-    }, 2500);
+
+    // Warte explizit auf die Daten!
+    let tokenInfo = null;
+    while (!tokenInfo || tokenInfo.tokenId === 0) {
+        tokenInfo = await robustFetchLatestTokenInfo();
+        if (tokenInfo && tokenInfo.tokenId !== 0) break;
+        // Warte kurz, bevor erneut versucht wird (z.B. 500ms)
+        await new Promise(r => setTimeout(r, 500));
+    }
+    clearInterval(pageloadIdleInterval);
+    isIdle = false;
+    updateUIWithTokenInfo(tokenInfo);
+    setAllButtonsEnabled(true);
 
     // Optional: On resize/orientation change, re-enable buttons
     window.addEventListener('resize', () => setAllButtonsEnabled(true));
@@ -907,7 +918,8 @@ document.addEventListener('DOMContentLoaded', () => {
             await tx.wait();
             // Success message after mint
             showToast("Expression successfully minted!");
-            const tokenInfo = await fetchLatestTokenInfo();
+            const tokenInfo = await robustFetchLatestTokenInfo();
+            console.log('[Mint] TokenInfo nach Mint:', tokenInfo);
             updateUIWithTokenInfo(tokenInfo);
         } catch (err) {
             alert("Error minting: " + (err.info?.error?.message || err.message));
@@ -1061,28 +1073,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // Immediately run on first load
     checkForChainUpdates();
 
-    // Fetch latest token info using the new batched contract logic
-    async function fetchLatestTokenInfo() {
-        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
-        const nextTokenId = await contract.nextTokenId();
-        for (let i = nextTokenId - 1n; i >= 1n; i--) {
-            const [expressions, ids] = await contract.getExpressionsInRange(i, i);
-            if (ids.length > 0) {
-                const expr = expressions[0];
-                return {
-                    tokenId: Number(ids[0]),
-                    tendency: expr.isBest ? "best" : "worst",
-                    expression: expr.word
-                };
+    async function robustFetchLatestTokenInfo() {
+        try {
+            const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
+            const nextTokenId = await contract.nextTokenId();
+            console.log('[fetchLatestTokenInfo] nextTokenId:', nextTokenId.toString());
+            for (let i = nextTokenId - 1n; i >= 1n; i--) {
+                try {
+                    const [expressions, ids] = await contract.getExpressionsInRange(i, i);
+                    console.log(`[fetchLatestTokenInfo] getExpressionsInRange(${i}, ${i}) → ids:`, ids);
+                    if (ids.length > 0) {
+                        const expr = expressions[0];
+                        const info = {
+                            tokenId: Number(ids[0]),
+                            tendency: expr.isBest ? "best" : "worst",
+                            expression: expr.word
+                        };
+                        cachedTokenInfo = info;
+                        tokenInfoFetchError = null;
+                        return info;
+                    }
+                } catch (err) {
+                    console.error(`[fetchLatestTokenInfo] Fehler bei getExpressionsInRange(${i}, ${i}):`, err);
+                }
             }
+            // Fallback, wenn kein Token existiert
+            const fallback = {
+                tokenId: 0,
+                tendency: "?",
+                expression: "CHOICE"
+            };
+            cachedTokenInfo = fallback;
+            tokenInfoFetchError = null;
+            return fallback;
+        } catch (err) {
+            console.error('[fetchLatestTokenInfo] Allgemeiner Fehler:', err);
+            tokenInfoFetchError = err;
+            // Gib letzten Cache zurück, falls vorhanden
+            if (cachedTokenInfo) return cachedTokenInfo;
+            // Sonst Fallback
+            return {
+                tokenId: 0,
+                tendency: "?",
+                expression: "CHOICE"
+            };
         }
-        // Fallback, if no token exists
-        return {
-            tokenId: 0,
-            tendency: "?",
-            expression: "CHOICE"
-        };
     }
 
     // ASCII Bär Animation für die Infobox
