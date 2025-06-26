@@ -15,6 +15,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Retry-Mechanismus für robuste Contract-Calls
+    async function fetchWithRetry(fn, retries = 3, baseDelay = 1000) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                return await fn();
+            } catch (e) {
+                debugWarn(`Attempt ${i + 1} failed:`, e.message);
+                if (i === retries - 1) {
+                    debugWarn('All retry attempts failed');
+                    throw e;
+                }
+                // Exponentieller Backoff: 1s, 2s, 4s
+                const delay = baseDelay * Math.pow(2, i);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+
+    // Loading-State Management
+    let isLoading = false;
+    
+    function setLoadingState(loading) {
+        isLoading = loading;
+        if (loading) {
+            // Zeige Loading-Indikator statt Idle-Animation
+            if (counter) counter.textContent = "Lade...";
+            if (toggleText) toggleText.textContent = "⏳";
+            if (toggleTextMobile) toggleTextMobile.textContent = "⏳";
+            if (highlight) highlight.textContent = "Daten werden geladen...";
+            if (highlightMobile) highlightMobile.textContent = "Daten werden geladen...";
+        }
+    }
+
     // --- Declare ALL DOM elements at the top ---
     const body = document.body;
     const toggleButton = document.querySelector('.toggle-button');
@@ -633,10 +666,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update UI
                 mintBtn.textContent = 'MINT';
                 walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
-                // Nach erfolgreichem Connect: Daten neu laden
-                const tokenInfo = await fetchLatestTokenInfo();
-                updateUIWithTokenInfo(tokenInfo);
-                updateExpressionsMarquee();
+                // Nach erfolgreichem Connect: Daten mit Retry neu laden
+                try {
+                    const tokenInfo = await fetchLatestTokenInfo();
+                    updateUIWithTokenInfo(tokenInfo);
+                    await updateExpressionsMarquee();
+                } catch (error) {
+                    debugWarn('Failed to reload data after wallet connect:', error);
+                }
                 closeModalFunc();
                 // Listen for account changes
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
@@ -675,7 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleChainChanged(_chainId) {
+    async function handleChainChanged(_chainId) {
         if (_chainId !== BASE_PARAMS.chainId) {
             isConnected = false;
             currentAccount = null;
@@ -687,9 +724,14 @@ document.addEventListener('DOMContentLoaded', () => {
             mintBtn.textContent = 'MINT';
             walletStatus.textContent = '';
             closeModalFunc();
-            // Nach Chain-Wechsel: Daten neu laden
-            fetchLatestTokenInfo().then(updateUIWithTokenInfo);
-            updateExpressionsMarquee();
+            // Nach Chain-Wechsel: Daten mit Retry neu laden
+            try {
+                const tokenInfo = await fetchLatestTokenInfo();
+                updateUIWithTokenInfo(tokenInfo);
+                await updateExpressionsMarquee();
+            } catch (error) {
+                debugWarn('Failed to reload data after chain change:', error);
+            }
         }
     }
 
@@ -767,49 +809,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Optimierte Aktualisierung der usedWordsSet
     async function fetchAllExpressionsBatched(batchSize = 200) {
-        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
-        const allExpressions = [];
-        const allIds = [];
-        const nextTokenId = await contract.nextTokenId();
-        debugLog('[fetchAllExpressionsBatched] nextTokenId:', nextTokenId.toString());
-        if (nextTokenId <= 1n) {
+        try {
+            return await fetchWithRetry(async () => {
+                const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
+                const allExpressions = [];
+                const allIds = [];
+                const nextTokenId = await contract.nextTokenId();
+                debugLog('[fetchAllExpressionsBatched] nextTokenId:', nextTokenId.toString());
+                if (nextTokenId <= 1n) {
+                    usedWordsSet = new Set();
+                    return [];
+                }
+                // Optimierte Batch-Verarbeitung
+                const batches = [];
+                for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
+                    let end = nextTokenId - 1n;
+                    if (start + BigInt(batchSize) - 1n < end) {
+                        end = start + BigInt(batchSize) - 1n;
+                    }
+                    if (start > end) continue; // Niemals ungültige Bereiche pushen!
+                    batches.push([start, end]);
+                }
+                debugLog('[fetchAllExpressionsBatched] batches:', batches);
+                // Parallele Verarbeitung der Batches mit Fehlerbehandlung
+                const results = await Promise.all(
+                    batches.map(async ([start, end]) => {
+                        try {
+                            const [expressions, ids] = await contract.getExpressionsInRange(start, end);
+                            return { expressions, ids };
+                        } catch (e) {
+                            debugWarn('getExpressionsInRange error', start.toString(), end.toString(), e);
+                            return [[], []];
+                        }
+                    })
+                );
+                // Sammle alle Ergebnisse
+                results.forEach(({ expressions, ids }) => {
+                    allExpressions.push(...expressions);
+                    allIds.push(...ids);
+                });
+                // Erstelle Set für usedWords
+                usedWordsSet = new Set(allExpressions.map(expr => expr.word));
+                return allExpressions;
+            });
+        } catch (error) {
+            debugWarn('fetchAllExpressionsBatched failed after all retries:', error);
+            // Bei komplettem Fehler: Leeres Array zurückgeben
             usedWordsSet = new Set();
             return [];
         }
-        // Optimierte Batch-Verarbeitung
-        const batches = [];
-        for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
-            let end = nextTokenId - 1n;
-            if (start + BigInt(batchSize) - 1n < end) {
-                end = start + BigInt(batchSize) - 1n;
-            }
-            if (start > end) continue; // Niemals ungültige Bereiche pushen!
-            batches.push([start, end]);
-        }
-        debugLog('[fetchAllExpressionsBatched] batches:', batches);
-        // Parallele Verarbeitung der Batches mit Fehlerbehandlung
-        const results = await Promise.all(
-            batches.map(async ([start, end]) => {
-                try {
-                    return await contract.getExpressionsInRange(start, end);
-                } catch (e) {
-                    debugWarn('getExpressionsInRange error', start.toString(), end.toString(), e);
-                    return [[], []];
-                }
-            })
-        );
-        results.forEach(([expressions, ids]) => {
-            allExpressions.push(...expressions);
-            allIds.push(...ids);
-        });
-        // Sofortige Aktualisierung des usedWordsSet
-        const newUsedWordsSet = new Set(allExpressions.map(expr => (expr.word || expr[1] || '').toUpperCase()));
-        usedWordsSet = newUsedWordsSet;
-        return allExpressions.map((expr, i) => ({
-            ...expr,
-            tokenId: Number(allIds[i])
-        }));
     }
 
     // Pause-Funktion für Benutzerinteraktionen
@@ -995,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTrackIndex = 0;
     let audio = null;
     let isPlaying = false;
-    let isLoading = false;
+    let isMusicLoading = false;
     let loadedTracks = [false]; // Initial: nothing loaded
 
     // Buttons
@@ -1048,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', () => {
             audio.pause();
             audio.currentTime = 0;
         }
-        isLoading = true;
+        isMusicLoading = true;
         try {
             await audio.play();
             isPlaying = true;
@@ -1056,11 +1105,11 @@ document.addEventListener('DOMContentLoaded', () => {
             isPlaying = false;
             debugWarn('Error starting player:', e);
         }
-        isLoading = false;
+        isMusicLoading = false;
         updatePlayPauseIcon();
     }
     playPauseBtn.addEventListener('click', async () => {
-        if (isLoading) return;
+        if (isMusicLoading) return;
         if (!audio) {
             try {
                 await playTrack(currentTrackIndex);
@@ -1117,46 +1166,79 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Check every 30 seconds for updates
     setInterval(checkForChainUpdates, 30000);
-    // Immediately run on first load
-    checkForChainUpdates();
+    
+    // Sofortige Initialisierung beim Laden (keine Verzögerung mehr)
+    async function initializeApp() {
+        try {
+            const tokenInfo = await fetchLatestTokenInfo();
+            updateUIWithTokenInfo(tokenInfo);
+            await updateExpressionsMarquee();
+        } catch (error) {
+            debugWarn('Initial app load failed:', error);
+            // Fallback: Zeige leeren Zustand
+            updateUIWithTokenInfo({
+                tokenId: 0,
+                tendency: "?",
+                expression: "CHOICE"
+            });
+        }
+    }
+    
+    // Starte sofort beim Laden
+    initializeApp();
 
     // Fetch latest token info using the new batched contract logic
     async function fetchLatestTokenInfo() {
-        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
-        const nextTokenId = await contract.nextTokenId();
-        debugLog('[fetchLatestTokenInfo] nextTokenId:', nextTokenId.toString());
-        if (nextTokenId <= 1n) {
+        setLoadingState(true);
+        try {
+            return await fetchWithRetry(async () => {
+                const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
+                const nextTokenId = await contract.nextTokenId();
+                debugLog('[fetchLatestTokenInfo] nextTokenId:', nextTokenId.toString());
+                if (nextTokenId <= 1n) {
+                    return {
+                        tokenId: 0,
+                        tendency: "?",
+                        expression: "CHOICE"
+                    };
+                }
+                for (let i = nextTokenId - 1n; i >= 1n; i--) {
+                    try {
+                        const [expressions, ids] = await contract.getExpressionsInRange(i, i);
+                        debugLog('getExpressionsInRange', i.toString(), expressions, ids);
+                        if (ids.length > 0) {
+                            const expr = expressions[0];
+                            return {
+                                tokenId: Number(ids[0]),
+                                tendency: expr.isBest ? "best" : "worst",
+                                expression: expr.word
+                            };
+                        }
+                    } catch (e) {
+                        debugWarn('getExpressionsInRange error', i.toString(), e);
+                        // Fehler beim Lesen: Token existiert nicht wirklich!
+                        continue;
+                    }
+                }
+                // Fallback, if no token exists
+                return {
+                    tokenId: 0,
+                    tendency: "?",
+                    expression: "CHOICE"
+                };
+            });
+        } catch (error) {
+            debugWarn('fetchLatestTokenInfo failed after all retries:', error);
+            // Bei komplettem Fehler: Fallback zurückgeben
             return {
                 tokenId: 0,
                 tendency: "?",
                 expression: "CHOICE"
             };
+        } finally {
+            setLoadingState(false);
         }
-        for (let i = nextTokenId - 1n; i >= 1n; i--) {
-            try {
-                const [expressions, ids] = await contract.getExpressionsInRange(i, i);
-                debugLog('getExpressionsInRange', i.toString(), expressions, ids);
-                if (ids.length > 0) {
-                    const expr = expressions[0];
-                    return {
-                        tokenId: Number(ids[0]),
-                        tendency: expr.isBest ? "best" : "worst",
-                        expression: expr.word
-                    };
-                }
-            } catch (e) {
-                debugWarn('getExpressionsInRange error', i.toString(), e);
-                // Fehler beim Lesen: Token existiert nicht wirklich!
-                continue;
-            }
-        }
-        // Fallback, if no token exists
-        return {
-            tokenId: 0,
-            tendency: "?",
-            expression: "CHOICE"
-        };
     }
 
     // ASCII Bär Animation für die Infobox
