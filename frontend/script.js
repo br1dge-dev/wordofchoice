@@ -430,6 +430,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (tokenInfo && tokenInfo.tokenId !== undefined) {
                     stopIdleCounter(tokenInfo.tokenId);
                 }
+                // Gemintetes Wort direkt lokal als verwendet markieren
+                if (mintParams && mintParams.word) {
+                    usedWordsSet.add(mintParams.word.toUpperCase());
+                }
+                // Sofortige Validierung nach Mint, damit Button und Info-Box korrekt sind
+                if (highlight) validateAndUpdateUI(highlight.textContent);
+                if (highlightMobile) validateAndUpdateUI(highlightMobile.textContent);
             } catch (error) {
                 clearInterval(expressionInterval);
                 isMinting = false;
