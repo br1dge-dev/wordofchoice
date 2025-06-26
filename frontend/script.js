@@ -813,123 +813,142 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
-    // Optimierte Aktualisierung der usedWordsSet
-    async function fetchAllExpressionsBatched(batchSize = 200) {
-        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
-        const allExpressions = [];
-        const allIds = [];
-        
-        // Aktiviere Debug-Logging temporär für Fehlerbehebung
-        const DEBUG_LOGGING = true;
+    // Hilfsfunktion für Timeout-Schutz bei RPC-Aufrufen
+    async function withTimeout(promise, timeoutMs = 5000, errorMessage = 'Operation timed out') {
+        let timeoutId;
+        const timeoutPromise = new Promise((_, reject) => {
+            timeoutId = setTimeout(() => {
+                reject(new Error(errorMessage));
+            }, timeoutMs);
+        });
         
         try {
-            const nextTokenId = await contract.nextTokenId();
-            if (DEBUG_LOGGING) console.log('[DEBUG] nextTokenId:', nextTokenId.toString());
-            
-            if (nextTokenId <= 1n) {
-                usedWordsSet = new Set();
-                return [];
-            }
-            
-            // Optimierte Batch-Verarbeitung
-            const batches = [];
-            for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
-                let end = nextTokenId - 1n;
-                if (start + BigInt(batchSize) - 1n < end) {
-                    end = start + BigInt(batchSize) - 1n;
-                }
-                if (start > end) continue; // Niemals ungültige Bereiche pushen!
-                batches.push([start, end]);
-            }
-            
-            if (DEBUG_LOGGING) console.log('[DEBUG] batches:', batches);
-            
-            // Parallele Verarbeitung der Batches mit Fehlerbehandlung
-            const results = await Promise.all(
-                batches.map(async ([start, end]) => {
-                    try {
-                        const result = await contract.getExpressionsInRange(start, end);
-                        if (DEBUG_LOGGING) console.log('[DEBUG] getExpressionsInRange result:', start.toString(), end.toString(), result);
-                        return result;
-                    } catch (e) {
-                        console.error('[ERROR] getExpressionsInRange error', start.toString(), end.toString(), e);
-                        return [[], []];
-                    }
-                })
-            );
-            
-            // Verarbeite die Ergebnisse und normalisiere die Datenstruktur
-            results.forEach(([expressions, ids]) => {
-                if (DEBUG_LOGGING) console.log('[DEBUG] Processing batch result:', expressions, ids);
-                
-                // Überprüfe, ob expressions ein Array ist
-                if (!Array.isArray(expressions) || !Array.isArray(ids)) {
-                    console.error('[ERROR] Unexpected data format:', expressions, ids);
-                    return;
-                }
-                
-                // Verarbeite jedes Expression-Objekt und normalisiere es
-                for (let i = 0; i < expressions.length; i++) {
-                    const expr = expressions[i];
-                    const id = ids[i];
-                    
-                    // Überprüfe die Struktur des Expression-Objekts
-                    if (expr) {
-                        // Normalisiere das Objekt basierend auf der tatsächlichen Struktur
-                        let normalizedExpr;
-                        
-                        if (typeof expr === 'object') {
-                            if (DEBUG_LOGGING) console.log('[DEBUG] Expression object structure:', Object.keys(expr));
-                            
-                            // Versuche, die Werte aus dem Objekt zu extrahieren, unabhängig davon, ob es
-                            // ein Array-ähnliches Objekt oder ein normales Objekt ist
-                            const isBest = expr.isBest !== undefined ? expr.isBest : 
-                                          (expr[0] !== undefined ? expr[0] : false);
-                            
-                            const word = expr.word !== undefined ? expr.word : 
-                                        (expr[1] !== undefined ? expr[1] : '');
-                            
-                            const timestamp = expr.timestamp !== undefined ? expr.timestamp : 
-                                             (expr[2] !== undefined ? expr[2] : 0);
-                            
-                            normalizedExpr = {
-                                isBest: isBest,
-                                word: word,
-                                timestamp: timestamp
-                            };
-                        } else {
-                            console.error('[ERROR] Expression is not an object:', expr);
-                            continue;
-                        }
-                        
-                        allExpressions.push(normalizedExpr);
-                        allIds.push(id);
-                    }
-                }
-            });
-            
-            // Sofortige Aktualisierung des usedWordsSet
-            const newUsedWordsSet = new Set(allExpressions.map(expr => {
-                const word = expr.word || '';
-                return word.toUpperCase();
-            }).filter(word => word !== '' && word !== 'CHOICE' && word !== '?'));
-            
-            if (DEBUG_LOGGING) console.log('[DEBUG] usedWordsSet:', Array.from(newUsedWordsSet));
-            usedWordsSet = newUsedWordsSet;
-            
-            const finalResult = allExpressions.map((expr, i) => ({
-                ...expr,
-                tokenId: Number(allIds[i])
-            }));
-            
-            if (DEBUG_LOGGING) console.log('[DEBUG] Final result:', finalResult);
-            return finalResult;
+            const result = await Promise.race([promise, timeoutPromise]);
+            clearTimeout(timeoutId);
+            return result;
         } catch (error) {
-            console.error('[ERROR] Fatal error in fetchAllExpressionsBatched:', error);
-            return [];
+            clearTimeout(timeoutId);
+            throw error;
         }
     }
+
+    // Fetch latest token info using the new batched contract logic
+    async function fetchLatestTokenInfo() {
+        // Verwende mehrere RPC-Provider als Fallback
+        const providers = [
+            new ethers.JsonRpcProvider('https://mainnet.base.org'),
+            new ethers.JsonRpcProvider('https://base-mainnet.g.alchemy.com/v2/demo'),
+            new ethers.JsonRpcProvider('https://1rpc.io/base')
+        ];
+        
+        // Versuche jeden Provider nacheinander
+        for (let i = 0; i < providers.length; i++) {
+            try {
+                console.log(`[DEBUG] Versuche Provider ${i+1} für fetchLatestTokenInfo`);
+                const provider = providers[i];
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
+                
+                // Verwende Timeout-Schutz für nextTokenId-Aufruf
+                const nextTokenId = await withTimeout(
+                    contract.nextTokenId(),
+                    8000,
+                    `Provider ${i+1} nextTokenId Timeout`
+                );
+                console.log('[DEBUG] fetchLatestTokenInfo nextTokenId:', nextTokenId.toString());
+                
+                if (nextTokenId <= 1n) {
+                    return {
+                        tokenId: 0,
+                        tendency: "?",
+                        expression: "CHOICE"
+                    };
+                }
+                
+                // Nur die letzten 5 Token überprüfen, um schneller zu sein
+                const startTokenId = Math.max(1, Number(nextTokenId) - 5);
+                for (let j = BigInt(startTokenId); j < nextTokenId; j++) {
+                    try {
+                        // Verwende Timeout-Schutz für getExpressionsInRange-Aufruf
+                        const [expressions, ids] = await withTimeout(
+                            contract.getExpressionsInRange(j, j),
+                            8000,
+                            `Provider ${i+1} getExpressionsInRange Timeout für Token ${j}`
+                        );
+                        console.log('[DEBUG] getExpressionsInRange', j.toString(), expressions, ids);
+                        
+                        if (ids.length > 0) {
+                            const expr = expressions[0];
+                            
+                            // Normalisiere das Expression-Objekt
+                            let tendency, word;
+                            
+                            if (typeof expr === 'object') {
+                                // Extrahiere Werte basierend auf der tatsächlichen Struktur
+                                tendency = expr.isBest !== undefined ? expr.isBest : 
+                                        (expr[0] !== undefined ? expr[0] : false);
+                                
+                                word = expr.word !== undefined ? expr.word : 
+                                    (expr[1] !== undefined ? expr[1] : 'CHOICE');
+                            } else {
+                                console.error('[ERROR] Expression is not an object:', expr);
+                                continue;
+                            }
+                            
+                            return {
+                                tokenId: Number(ids[0]),
+                                tendency: tendency === true ? "best" : "worst",
+                                expression: word
+                            };
+                        }
+                    } catch (e) {
+                        console.error('[ERROR] getExpressionsInRange error', j.toString(), e);
+                        // Fehler beim Lesen: Versuche nächsten Token
+                        continue;
+                    }
+                }
+                
+                // Wenn wir hier ankommen, haben wir mit diesem Provider alle Token durchsucht, aber keinen gefunden
+                console.log('[DEBUG] Keine gültigen Tokens mit Provider', i+1);
+                
+            } catch (error) {
+                console.error(`[ERROR] Provider ${i+1} fehlgeschlagen:`, error);
+                // Versuche den nächsten Provider
+                continue;
+            }
+        }
+        
+        // Alle Provider fehlgeschlagen oder keine Tokens gefunden
+        console.warn('[WARN] Alle Provider fehlgeschlagen oder keine Tokens gefunden');
+        return {
+            tokenId: 0,
+            tendency: "?",
+            expression: "CHOICE"
+        };
+    }
+
+    // ASCII Bär Animation für die Infobox
+    const bearFrames = [
+        'ʕ◴ᴥ◴ʔ',
+        'ʕ◷ᴥ◷ʔ',
+        'ʕ◶ᴥ◶ʔ',
+        'ʕ◵ᴥ◵ʔ'
+    ];
+    let bearIndex = 0;
+    let bearInterval = null;
+
+    function startBearAnimation() {
+        if (bearInterval) clearInterval(bearInterval);
+        bearInterval = setInterval(() => {
+            const bearElement = document.querySelector('.bear-animation');
+            if (bearElement) {
+                bearElement.textContent = bearFrames[bearIndex];
+                bearIndex = (bearIndex + 1) % bearFrames.length;
+            }
+        }, 400);
+    }
+
+    // Starte die Animation nach dem Laden
+    startBearAnimation();
 
     // Pause-Funktion für Benutzerinteraktionen
     let isPaused = false;
@@ -1279,96 +1298,152 @@ document.addEventListener('DOMContentLoaded', () => {
     // Immediately run on first load
     checkForChainUpdates();
 
-    // Fetch latest token info using the new batched contract logic
-    async function fetchLatestTokenInfo() {
-        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
+    async function fetchAllExpressionsBatched(batchSize = 100) {
+        // Kleinerer Batch-Size für bessere Performance und weniger Timeouts
         
-        try {
-            const nextTokenId = await contract.nextTokenId();
-            console.log('[DEBUG] fetchLatestTokenInfo nextTokenId:', nextTokenId.toString());
-            
-            if (nextTokenId <= 1n) {
-                return {
-                    tokenId: 0,
-                    tendency: "?",
-                    expression: "CHOICE"
-                };
-            }
-            
-            for (let i = nextTokenId - 1n; i >= 1n; i--) {
-                try {
-                    const [expressions, ids] = await contract.getExpressionsInRange(i, i);
-                    console.log('[DEBUG] getExpressionsInRange', i.toString(), expressions, ids);
-                    
-                    if (ids.length > 0) {
-                        const expr = expressions[0];
+        // Verwende mehrere RPC-Provider als Fallback
+        const providers = [
+            new ethers.JsonRpcProvider('https://mainnet.base.org'),
+            new ethers.JsonRpcProvider('https://base-mainnet.g.alchemy.com/v2/demo'),
+            new ethers.JsonRpcProvider('https://1rpc.io/base')
+        ];
+        
+        const allExpressions = [];
+        const allIds = [];
+        
+        // Aktiviere Debug-Logging temporär für Fehlerbehebung
+        const DEBUG_LOGGING = true;
+        
+        // Versuche jeden Provider nacheinander
+        for (let providerIndex = 0; providerIndex < providers.length; providerIndex++) {
+            try {
+                console.log(`[DEBUG] Versuche Provider ${providerIndex+1} für fetchAllExpressionsBatched`);
+                const provider = providers[providerIndex];
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
+                
+                // Verwende Timeout-Schutz für nextTokenId-Aufruf
+                const nextTokenId = await withTimeout(
+                    contract.nextTokenId(),
+                    8000,
+                    `Provider ${providerIndex+1} nextTokenId Timeout`
+                );
+                
+                if (DEBUG_LOGGING) console.log('[DEBUG] nextTokenId:', nextTokenId.toString());
+                
+                if (nextTokenId <= 1n) {
+                    usedWordsSet = new Set();
+                    return [];
+                }
+                
+                // Optimierte Batch-Verarbeitung mit kleineren Batches
+                const batches = [];
+                for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
+                    let end = start + BigInt(batchSize) - 1n;
+                    if (end >= nextTokenId) {
+                        end = nextTokenId - 1n;
+                    }
+                    if (start > end) continue; // Niemals ungültige Bereiche pushen!
+                    batches.push([start, end]);
+                }
+                
+                if (DEBUG_LOGGING) console.log('[DEBUG] batches:', batches);
+                
+                // Sequentielle Verarbeitung der Batches mit Fehlerbehandlung (nicht parallel)
+                // Dies reduziert die Last auf den RPC-Provider und verhindert Rate-Limiting
+                for (const [start, end] of batches) {
+                    try {
+                        // Verwende Timeout-Schutz für getExpressionsInRange-Aufruf
+                        const result = await withTimeout(
+                            contract.getExpressionsInRange(start, end),
+                            10000,
+                            `Provider ${providerIndex+1} getExpressionsInRange Timeout für Batch ${start}-${end}`
+                        );
                         
-                        // Normalisiere das Expression-Objekt
-                        let tendency, word;
+                        if (DEBUG_LOGGING) console.log('[DEBUG] getExpressionsInRange result:', start.toString(), end.toString(), result);
                         
-                        if (typeof expr === 'object') {
-                            // Extrahiere Werte basierend auf der tatsächlichen Struktur
-                            tendency = expr.isBest !== undefined ? expr.isBest : 
-                                      (expr[0] !== undefined ? expr[0] : false);
-                            
-                            word = expr.word !== undefined ? expr.word : 
-                                  (expr[1] !== undefined ? expr[1] : 'CHOICE');
-                        } else {
-                            console.error('[ERROR] Expression is not an object:', expr);
+                        const [expressions, ids] = result;
+                        
+                        // Überprüfe, ob expressions ein Array ist
+                        if (!Array.isArray(expressions) || !Array.isArray(ids)) {
+                            console.error('[ERROR] Unexpected data format:', expressions, ids);
                             continue;
                         }
                         
-                        return {
-                            tokenId: Number(ids[0]),
-                            tendency: tendency === true ? "best" : "worst",
-                            expression: word
-                        };
+                        // Verarbeite jedes Expression-Objekt und normalisiere es
+                        for (let i = 0; i < expressions.length; i++) {
+                            const expr = expressions[i];
+                            const id = ids[i];
+                            
+                            // Überprüfe die Struktur des Expression-Objekts
+                            if (expr) {
+                                // Normalisiere das Objekt basierend auf der tatsächlichen Struktur
+                                let normalizedExpr;
+                                
+                                if (typeof expr === 'object') {
+                                    if (DEBUG_LOGGING) console.log('[DEBUG] Expression object structure:', Object.keys(expr));
+                                    
+                                    // Versuche, die Werte aus dem Objekt zu extrahieren, unabhängig davon, ob es
+                                    // ein Array-ähnliches Objekt oder ein normales Objekt ist
+                                    const isBest = expr.isBest !== undefined ? expr.isBest : 
+                                                (expr[0] !== undefined ? expr[0] : false);
+                                    
+                                    const word = expr.word !== undefined ? expr.word : 
+                                                (expr[1] !== undefined ? expr[1] : '');
+                                    
+                                    const timestamp = expr.timestamp !== undefined ? expr.timestamp : 
+                                                    (expr[2] !== undefined ? expr[2] : 0);
+                                    
+                                    normalizedExpr = {
+                                        isBest: isBest,
+                                        word: word,
+                                        timestamp: timestamp
+                                    };
+                                } else {
+                                    console.error('[ERROR] Expression is not an object:', expr);
+                                    continue;
+                                }
+                                
+                                allExpressions.push(normalizedExpr);
+                                allIds.push(id);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('[ERROR] getExpressionsInRange error', start.toString(), end.toString(), e);
+                        // Fehler bei diesem Batch, aber wir machen mit dem nächsten weiter
+                        continue;
                     }
-                } catch (e) {
-                    console.error('[ERROR] getExpressionsInRange error', i.toString(), e);
-                    // Fehler beim Lesen: Token existiert nicht wirklich!
-                    continue;
+                    
+                    // Kurze Pause zwischen Batch-Anfragen, um Rate-Limiting zu vermeiden
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 }
+                
+                // Wenn wir hier ankommen, war dieser Provider erfolgreich
+                // Sofortige Aktualisierung des usedWordsSet
+                const newUsedWordsSet = new Set(allExpressions.map(expr => {
+                    const word = expr.word || '';
+                    return word.toUpperCase();
+                }).filter(word => word !== '' && word !== 'CHOICE' && word !== '?'));
+                
+                if (DEBUG_LOGGING) console.log('[DEBUG] usedWordsSet:', Array.from(newUsedWordsSet));
+                usedWordsSet = newUsedWordsSet;
+                
+                const finalResult = allExpressions.map((expr, i) => ({
+                    ...expr,
+                    tokenId: Number(allIds[i])
+                }));
+                
+                if (DEBUG_LOGGING) console.log('[DEBUG] Final result:', finalResult);
+                return finalResult;
+                
+            } catch (error) {
+                console.error(`[ERROR] Provider ${providerIndex+1} fehlgeschlagen:`, error);
+                // Versuche den nächsten Provider
+                continue;
             }
-            
-            // Fallback, if no token exists
-            return {
-                tokenId: 0,
-                tendency: "?",
-                expression: "CHOICE"
-            };
-        } catch (error) {
-            console.error('[ERROR] Fatal error in fetchLatestTokenInfo:', error);
-            return {
-                tokenId: 0,
-                tendency: "?",
-                expression: "CHOICE"
-            };
         }
+        
+        // Alle Provider fehlgeschlagen
+        console.error('[ERROR] Alle Provider für fetchAllExpressionsBatched fehlgeschlagen');
+        return [];
     }
-
-    // ASCII Bär Animation für die Infobox
-    const bearFrames = [
-        'ʕ◴ᴥ◴ʔ',
-        'ʕ◷ᴥ◷ʔ',
-        'ʕ◶ᴥ◶ʔ',
-        'ʕ◵ᴥ◵ʔ'
-    ];
-    let bearIndex = 0;
-    let bearInterval = null;
-
-    function startBearAnimation() {
-        if (bearInterval) clearInterval(bearInterval);
-        bearInterval = setInterval(() => {
-            const bearElement = document.querySelector('.bear-animation');
-            if (bearElement) {
-                bearElement.textContent = bearFrames[bearIndex];
-                bearIndex = (bearIndex + 1) % bearFrames.length;
-            }
-        }, 400);
-    }
-
-    // Starte die Animation nach dem Laden
-    startBearAnimation();
 }); 
