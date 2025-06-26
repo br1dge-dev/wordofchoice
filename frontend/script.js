@@ -773,23 +773,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let pauseTimeout = null;
     let updateInterval = null;
 
-    function pauseInteractions() {
-        isPaused = true;
-        if (pauseTimeout) clearTimeout(pauseTimeout);
-        if (updateInterval) clearInterval(updateInterval);
-        
-        pauseTimeout = setTimeout(() => {
-            isPaused = false;
-            // Restart interval after pause
-            startUpdateInterval();
-        }, 20000); // 20 seconds pause
-    }
-
     function startUpdateInterval() {
         if (updateInterval) clearInterval(updateInterval);
         updateInterval = setInterval(async () => {
             if (!isPaused) {
-                // Aktualisiere alle dynamischen Elemente
                 const tokenInfo = await robustFetchLatestTokenInfo();
                 console.log('[Intervall] TokenInfo:', tokenInfo);
                 updateUIWithTokenInfo(tokenInfo);
@@ -798,7 +785,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 10000); // Alle 10 Sekunden aktualisieren
     }
 
-    // Event-Listener für Benutzerinteraktionen
+    function pauseInteractions() {
+        isPaused = true;
+        if (pauseTimeout) clearTimeout(pauseTimeout);
+        if (updateInterval) clearInterval(updateInterval);
+        pauseTimeout = setTimeout(() => {
+            isPaused = false;
+            startUpdateInterval();
+        }, 20000); // 20 Sekunden Pause
+    }
+
     document.addEventListener('mousemove', pauseInteractions);
     document.addEventListener('click', pauseInteractions);
     document.addEventListener('keydown', pauseInteractions);
