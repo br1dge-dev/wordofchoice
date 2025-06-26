@@ -511,17 +511,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const connectWalletBtn = document.getElementById('connectWallet');
     const walletStatus = document.getElementById('walletStatus');
 
-    // BASE Sepolia Testnet data
-    const BASE_SEPOLIA_PARAMS = {
-        chainId: '0x14a34',
-        chainName: 'Base Sepolia Testnet',
+    // BASE Mainnet Daten
+    const BASE_PARAMS = {
+        chainId: '0x2105', // BASE Mainnet Chain ID
+        chainName: 'Base Mainnet',
         nativeCurrency: {
             name: 'Ethereum',
             symbol: 'ETH',
             decimals: 18
         },
-        rpcUrls: ['https://sepolia.base.org'],
-        blockExplorerUrls: ['https://sepolia.basescan.org']
+        rpcUrls: ['https://mainnet.base.org'],
+        blockExplorerUrls: ['https://basescan.org']
     };
 
     // Modal Functions
@@ -568,28 +568,28 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Check network
                 let chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                if (chainId !== BASE_SEPOLIA_PARAMS.chainId) {
+                if (chainId !== BASE_PARAMS.chainId) {
                     // Try automatic switch
                     try {
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: BASE_SEPOLIA_PARAMS.chainId }]
+                            params: [{ chainId: BASE_PARAMS.chainId }]
                         });
-                        chainId = BASE_SEPOLIA_PARAMS.chainId;
+                        chainId = BASE_PARAMS.chainId;
                     } catch (switchError) {
                         if (switchError.code === 4902) {
                             try {
                                 await window.ethereum.request({
                                     method: 'wallet_addEthereumChain',
-                                    params: [BASE_SEPOLIA_PARAMS]
+                                    params: [BASE_PARAMS]
                                 });
-                                chainId = BASE_SEPOLIA_PARAMS.chainId;
+                                chainId = BASE_PARAMS.chainId;
                             } catch (addError) {
-                                walletStatus.textContent = 'Please add BASE Sepolia Testnet to your wallet.';
+                                walletStatus.textContent = 'Please add BASE Mainnet to your wallet.';
                                 return;
                             }
                         } else {
-                            walletStatus.textContent = 'Please switch to BASE Sepolia Testnet in your wallet.';
+                            walletStatus.textContent = 'Please switch to BASE Mainnet in your wallet.';
                             return;
                         }
                     }
@@ -640,11 +640,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleChainChanged(_chainId) {
-        if (_chainId !== BASE_SEPOLIA_PARAMS.chainId) {
+        if (_chainId !== BASE_PARAMS.chainId) {
             isConnected = false;
             currentAccount = null;
             mintBtn.textContent = 'CONNECT';
-            walletStatus.textContent = 'Please switch to BASE Sepolia Testnet in your wallet.';
+            walletStatus.textContent = 'Please switch to BASE Mainnet in your wallet.';
             openModal();
         } else {
             isConnected = true;
@@ -708,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Optimierte Aktualisierung der usedWordsSet
     async function fetchAllExpressionsBatched(batchSize = 200) {
-        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const allExpressions = [];
         const allIds = [];
@@ -1043,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch latest token info using the new batched contract logic
     async function fetchLatestTokenInfo() {
-        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const nextTokenId = await contract.nextTokenId();
         for (let i = nextTokenId - 1n; i >= 1n; i--) {
