@@ -157,7 +157,7 @@ contract WordOfChoiceLife is ERC721, Ownable, ReentrancyGuard {
             '<text x="130" y="312" font-size="40" fill="', colorFg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="end">',
             '<tspan font-weight="bold" text-decoration="underline">life</tspan> is</text>',
             '<rect x="135" y="266" width="350" height="64" rx="11" fill="', colorFg, '"/>',
-            '<text x="310" y="298" font-size="56" fill="', colorBg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">', word, '</text>',
+            '<text x="310" y="304" font-size="56" fill="', colorBg, '" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle">', word, '</text>',
             '</g>'
         ));
         

@@ -650,7 +650,7 @@ document.addEventListener('DOMContentLoaded', () => {
     connectWalletBtn.addEventListener('click', connectWallet);
 
     // Contract address (Sepolia, Stand Januar 2025)
-    const CONTRACT_ADDRESS = "0x58c8fE3763872757c78929a125c9125a1fFef85A";
+    const CONTRACT_ADDRESS = "0x304d71B405be7D01727fD75453D2D56F32c0D8A0";
 
     // Contract ABI (nur relevante Funktionen)
     const contractABI = [
