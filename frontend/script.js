@@ -511,17 +511,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const connectWalletBtn = document.getElementById('connectWallet');
     const walletStatus = document.getElementById('walletStatus');
 
-    // BASE Sepolia Testnet Daten
+    // BASE Mainnet Daten
     const BASE_PARAMS = {
-        chainId: '0x14a33', // BASE Sepolia Chain ID
-        chainName: 'Base Sepolia',
+        chainId: '0x2105', // BASE Mainnet Chain ID (8453)
+        chainName: 'Base Mainnet',
         nativeCurrency: {
             name: 'Ethereum',
             symbol: 'ETH',
             decimals: 18
         },
-        rpcUrls: ['https://sepolia.base.org'],
-        blockExplorerUrls: ['https://sepolia.basescan.org']
+        rpcUrls: ['https://mainnet.base.org'],
+        blockExplorerUrls: ['https://basescan.org']
     };
 
     // Modal Functions
@@ -585,11 +585,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 });
                                 chainId = BASE_PARAMS.chainId;
                             } catch (addError) {
-                                walletStatus.textContent = 'Please add BASE Sepolia to your wallet.';
+                                walletStatus.textContent = 'Please add BASE Mainnet to your wallet.';
                                 return;
                             }
                         } else {
-                            walletStatus.textContent = 'Please switch to BASE Sepolia in your wallet.';
+                            walletStatus.textContent = 'Please switch to BASE Mainnet in your wallet.';
                             return;
                         }
                     }
@@ -644,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isConnected = false;
             currentAccount = null;
             mintBtn.textContent = 'CONNECT';
-            walletStatus.textContent = 'Please switch to BASE Sepolia in your wallet.';
+            walletStatus.textContent = 'Please switch to BASE Mainnet in your wallet.';
             openModal();
         } else {
             isConnected = true;
@@ -656,8 +656,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     connectWalletBtn.addEventListener('click', connectWallet);
 
-    // Contract address (BASE Sepolia Testnet)
-    const CONTRACT_ADDRESS = "0x2Fa15095D1b9b6D3FD9Cc6743770479d7BA12964";
+    // Contract address (Mainnet)
+    const CONTRACT_ADDRESS = "0xCE4D8d60433348A0A1ae06434873b25099Ac7d40";
 
     // Contract ABI (vollständig, aus artifacts übernommen)
     const contractABI = [
@@ -728,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Optimierte Aktualisierung der usedWordsSet
     async function fetchAllExpressionsBatched(batchSize = 200) {
-        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const allExpressions = [];
         const allIds = [];
@@ -1063,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch latest token info using the new batched contract logic
     async function fetchLatestTokenInfo() {
-        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const nextTokenId = await contract.nextTokenId();
         for (let i = nextTokenId - 1n; i >= 1n; i--) {

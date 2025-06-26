@@ -1,0 +1,10 @@
+{
+  "contractAddress": "0xCE4D8d60433348A0A1ae06434873b25099Ac7d40",
+  "deployer": "0x11ac5dDE6E09Fd2881Db69f169cbEA7C4489F7d7",
+  "network": "BASE Mainnet",
+  "chainId": "8453",
+  "deploymentTime": "2025-06-26T18:49:54.439Z",
+  "baseScanUrl": "https://basescan.org/address/0xCE4D8d60433348A0A1ae06434873b25099Ac7d40",
+  "firstTokenId": "1",
+  "mintPrice": "0.0069 ETH"
+}

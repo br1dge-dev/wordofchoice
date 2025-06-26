@@ -1,19 +1,22 @@
-# 🚀 Deployment Summary - WordOfChoice mit 0.0069 ETH Mint-Preis
+# 🚀 Deployment Summary - WordOfChoice LIVE auf BASE Mainnet
 
 ## 📋 Änderungen
 
 ### **Smart Contract (WordOfChoice.sol)**
 - ✅ Mint-Preis von **0.01 ETH** auf **0.0069 ETH** geändert
-- ✅ Contract erfolgreich auf BASE Sepolia Testnet deployt
+- ✅ Contract erfolgreich auf BASE Mainnet deployt
 - ✅ Contract erfolgreich auf BaseScan verifiziert
 - ✅ Reentrancy-Schutz für withdraw-Funktion hinzugefügt
 - ✅ `exists` Funktion auf `internal` gesetzt
 
 ### **Frontend (script.js)**
-- ✅ Contract-Adresse aktualisiert: `0xa152243ee777DD305eBB0F46bF21CE6601CDd9Ec`
+- ✅ Contract-Adresse aktualisiert: `0xCE4D8d60433348A0A1ae06434873b25099Ac7d40`
 - ✅ Mint-Preis in `mintExpression()` Funktion: `0.0069 ETH` (ruft `express()` auf)
 - ✅ Mint-Preis in `openConfirmationModal()`: `0.0069`
 - ✅ Bestätigungs-Button zeigt: `Mint for 0.0069 Ξ`
+- ✅ Alle Provider-URLs auf BASE Mainnet umgestellt
+- ✅ Chain ID korrekt auf `0x2105` (8453) gesetzt
+- ✅ Vollständiges ABI aus Contract-Artifacts übernommen
 
 ### **Konfiguration (config-mainnet.js)**
 - ✅ `MINT_PRICE: "0.0069"` gesetzt
@@ -25,43 +28,47 @@
 
 ## 🔗 Contract Details
 
-**Network**: BASE Sepolia Testnet  
-**Contract Address**: `0xa152243ee777DD305eBB0F46bF21CE6601CDd9Ec`  
-**BaseScan URL**: https://sepolia.basescan.org/address/0xa152243ee777DD305eBB0F46bF21CE6601CDd9Ec  
+**Network**: BASE Mainnet  
+**Contract Address**: `0xCE4D8d60433348A0A1ae06434873b25099Ac7d40`  
+**BaseScan URL**: https://basescan.org/address/0xCE4D8d60433348A0A1ae06434873b25099Ac7d40  
 **Mint Price**: 0.0069 ETH  
 **Deployer**: `0x11ac5dDE6E09Fd2881Db69f169cbEA7C4489F7d7`
 
 ## ✅ Tests durchgeführt
 
 ### **Contract Tests**
-- ✅ 4 Test-NFTs erfolgreich gemintet:
-  - `GO` (worst)
-  - `WAVE` (worst) 
-  - `SPIRIT` (worst)
-  - `SUNLIGHT` (worst)
+- ✅ 1 Test-NFT erfolgreich gemintet:
+  - `CHOICE` (worst) - Token #1
 
 ### **Frontend Tests**
 - ✅ Contract-Adresse korrekt konfiguriert
 - ✅ Mint-Preis überall konsistent auf 0.0069 ETH
 - ✅ Bestätigungs-Modal zeigt korrekten Preis
 - ✅ Mint-Funktion verwendet korrekten Wert
+- ✅ Alle Provider-URLs zeigen auf BASE Mainnet
+- ✅ Chain ID korrekt konfiguriert
 
-## 🎯 Nächste Schritte
+## 🎯 Live-Status
 
-1. **Frontend testen** mit MetaMask auf BASE Sepolia
-2. **User-Tests** durchführen
-3. **Mainnet-Deployment** vorbereiten (falls gewünscht)
-4. **Marketing** mit neuem Preis starten
+**Status**: ✅ LIVE auf BASE Mainnet  
+**Frontend**: Bereit für Produktion  
+**Contract**: Verifiziert und getestet  
+**Preis**: 0.0069 ETH pro Mint
 
 ## 📊 Kosten-Analyse
 
-**Alter Preis**: 0.01 ETH  
-**Neuer Preis**: 0.0069 ETH  
-**Preissenkung**: 31% günstiger
-
+**Aktueller Preis**: 0.0069 ETH  
 **Gas-Kosten pro Mint**: ~0.001-0.003 ETH  
 **Gesamtkosten pro Mint**: ~0.0079-0.0099 ETH
 
+## 🔧 Technische Details
+
+- **Network**: BASE Mainnet (Chain ID: 8453 / 0x2105)
+- **RPC URL**: https://mainnet.base.org
+- **Block Explorer**: https://basescan.org
+- **Contract**: Verifiziert und optimiert
+- **Frontend**: Vollständig auf Mainnet umgestellt
+
 ---
-*Deployment durchgeführt am: $(date)*
-*Status: ✅ Erfolgreich* 
+*Deployment durchgeführt am: $(date)*  
+*Status: ✅ LIVE auf BASE Mainnet* 
