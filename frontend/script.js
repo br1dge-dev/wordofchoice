@@ -1,5 +1,6 @@
 let cachedTokenInfo = null;
 let tokenInfoFetchError = null;
+let cachedExpressions = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- Declare ALL DOM elements at the top ---
@@ -780,7 +781,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const tokenInfo = await robustFetchLatestTokenInfo();
                 console.log('[Intervall] TokenInfo:', tokenInfo);
                 updateUIWithTokenInfo(tokenInfo);
-                updateExpressionsMarquee();
+                await pollAndUpdateExpressions(); // Marquee-Cache aktualisieren und anzeigen
             }
         }, 10000); // Alle 10 Sekunden aktualisieren
     }
@@ -800,10 +801,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('keydown', pauseInteractions);
     document.addEventListener('touchstart', pauseInteractions);
 
-    // Modifiziere updateExpressionsMarquee um Pause zu berücksichtigen
+    // Frühes robustes Laden der Expressions beim Pageload mit Retry
+    async function robustEarlyFetchExpressions() {
+        let tries = 0;
+        while (tries < 10) { // max. 10 Versuche
+            try {
+                const expressions = await fetchAllExpressionsBatched();
+                if (expressions && expressions.length > 0) {
+                    cachedExpressions = expressions;
+                    updateExpressionsMarquee();
+                    return;
+                }
+            } catch (err) {
+                console.error('[robustEarlyFetchExpressions] Fehler:', err);
+            }
+            tries++;
+            await new Promise(r => setTimeout(r, 1000)); // 1 Sekunde warten
+        }
+        // Fallback: leere Marquee anzeigen
+        cachedExpressions = [];
+        updateExpressionsMarquee();
+    }
+
+    // Passe updateExpressionsMarquee an, damit sie immer cachedExpressions verwendet
     async function updateExpressionsMarquee() {
         if (isPaused) return;
-        const expressions = await fetchAllExpressionsBatched();
+        const expressions = cachedExpressions;
         const marqueeContent = document.querySelector('.expressions-content');
         const marqueeContainer = document.querySelector('.expressions-marquee');
         if (marqueeContent && expressions.length > 0 && marqueeContainer) {
@@ -816,6 +839,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 marqueeContent.innerHTML += wordHTML;
                 repeat++;
             }
+        }
+    }
+
+    // Nach jedem erfolgreichen Polling-Intervall Expressions neu laden und Marquee updaten
+    async function pollAndUpdateExpressions() {
+        try {
+            cachedExpressions = await fetchAllExpressionsBatched();
+            updateExpressionsMarquee();
+        } catch (err) {
+            console.error('[pollAndUpdateExpressions] Fehler beim Laden der Expressions:', err);
         }
     }
 
@@ -1140,4 +1173,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Starte die Animation nach dem Laden
     startBearAnimation();
+
+    robustEarlyFetchExpressions();
 }); 
