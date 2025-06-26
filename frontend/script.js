@@ -175,6 +175,30 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', setEditIcons);
     window.addEventListener('orientationchange', setEditIcons);
 
+    // --- Make highlight boxes clickable ---
+    function setupHighlightClickHandlers() {
+        // Desktop highlight click handler
+        if (highlight) {
+            highlight.style.cursor = 'pointer';
+            highlight.addEventListener('click', () => {
+                if (!isEditing && editBtn) {
+                    editBtn.click();
+                }
+            });
+        }
+        
+        // Mobile highlight click handler
+        if (highlightMobile) {
+            highlightMobile.style.cursor = 'pointer';
+            highlightMobile.addEventListener('click', () => {
+                if (!isEditing && editBtnMobile) {
+                    editBtnMobile.click();
+                }
+            });
+        }
+    }
+    setupHighlightClickHandlers();
+
     // --- Edit/Save functionality for Desktop and Mobile ---
     function setupEditButton(btn, icon, isMobile) {
         if (!btn) return;

@@ -78,7 +78,7 @@ body::before {
     background-color: #F5E9D4;
     color: #2C241B;
     padding: 0.1em 0.5vw;
-    transition: background-color 0.5s, color 0.5s;
+    transition: background-color 0.5s, color 0.5s, transform 0.2s, box-shadow 0.2s;
     font-weight: bold;
     font-size: 7.68vw;
     display: inline-block;
@@ -88,11 +88,27 @@ body::before {
     min-height: 1.2em;
     text-align: center;
     line-height: 1.1;
+    cursor: pointer;
+    user-select: none;
+    overflow: visible;
 }
+
+.highlight:hover {
+    box-shadow: 0 2px 8px rgba(44,36,27,0.12);
+}
+
+.highlight:active {
+}
+
 body.toggled .highlight {
     background-color: #2C241B;
     color: #F5E9D4;
 }
+
+body.toggled .highlight:hover {
+    box-shadow: 0 2px 8px rgba(245,233,212,0.12);
+}
+
 /* Infobox-Highlight: Standard dunkel, toggled hell */
 .info-highlight {
     background-color: #2C241B;
@@ -335,7 +351,6 @@ body.toggled .edit-button {
         vertical-align: middle;
     }
     .mobile-headline .highlight {
-        font-size: 2.7rem !important;
         padding: 0.08em 0.3em;
         border-radius: 0.2em;
         min-width: 2.5em;
@@ -343,6 +358,12 @@ body.toggled .edit-button {
         text-align: center;
         line-height: 1.1;
         margin-top: 0.2em;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.5s, color 0.5s, transform 0.2s, box-shadow 0.2s;
+    }
+    body.toggled .mobile-headline .highlight:hover {
+        box-shadow: 0 2px 8px rgba(44,36,27,0.12);
     }
     .mobile-headline .toggle-button,
     .mobile-headline .edit-button {
@@ -367,6 +388,9 @@ body.toggled .edit-button {
     body.toggled .mobile-headline .edit-button {
         background: #2C241B;
         color: #F5E9D4;
+    }
+    body.toggled .mobile-headline .highlight:hover {
+        box-shadow: 0 2px 8px rgba(245,233,212,0.12);
     }
     .mobile-headline .toggle-button svg,
     .mobile-headline .edit-button svg {
@@ -637,6 +661,7 @@ body.toggled .headline-highlight {
     display: block;
     text-align: center;
     margin-top: 0;
+    overflow: visible;
 }
 
 .mint-bar {
