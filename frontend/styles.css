@@ -1476,4 +1476,24 @@ body.toggled .expressions-marquee {
 
 .bear-animation:hover {
     opacity: 0.7;
+}
+
+@media (min-width: 960px) and (max-width: 1399px) {
+  .hide-on-medium {
+    display: none !important;
+  }
+}
+
+.hide-on-medium {
+  display: inline;
+}
+
+@media (max-width: 1269px) {
+  .hide-on-small {
+    display: none !important;
+  }
+}
+
+.hide-on-small {
+  display: inline;
 } 
