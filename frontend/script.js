@@ -851,14 +851,20 @@ document.addEventListener('DOMContentLoaded', () => {
     async function updateExpressionsMarquee() {
         if (isPaused) return;
         const expressions = await fetchAllExpressionsBatched();
+        // Filtere alle Fallback/Initialwerte heraus
+        const filtered = expressions.filter(expr => {
+            if (!expr) return false;
+            if (!expr.word || expr.word === "CHOICE" || expr.word === "?" || expr.tokenId === 0) return false;
+            return true;
+        });
         const marqueeContent = document.querySelector('.expressions-content');
         const marqueeContainer = document.querySelector('.expressions-marquee');
         if (marqueeContent && marqueeContainer) {
-            if (expressions.length === 0) {
+            if (filtered.length === 0) {
                 marqueeContent.innerHTML = '';
                 return;
             }
-            const wordHTML = expressions.map(expr => 
+            const wordHTML = filtered.map(expr => 
                 `<span>${expr.word || expr[1] || expr.expression || JSON.stringify(expr)}</span>`
             ).join('<span class="dot">&nbsp;&middot;&nbsp;</span>');
             marqueeContent.innerHTML = wordHTML;
