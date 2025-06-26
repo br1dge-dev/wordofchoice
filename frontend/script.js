@@ -1,4 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Debug-Modus (auf false setzen für Live-Betrieb)
+    const DEBUG_MODE = false;
+    
+    // Debug-Logging Funktion
+    function debugLog(...args) {
+        if (DEBUG_MODE) {
+            console.log(...args);
+        }
+    }
+    
+    function debugWarn(...args) {
+        if (DEBUG_MODE) {
+            console.warn(...args);
+        }
+    }
+
     // --- Declare ALL DOM elements at the top ---
     const body = document.body;
     const toggleButton = document.querySelector('.toggle-button');
@@ -307,7 +323,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- After every UI update: synchronize and validate both highlights ---
     function updateUIWithTokenInfo(tokenInfo) {
-        if (!tokenInfo) return;
+        // Fehler- und Fallbackbehandlung
+        if (!tokenInfo || !tokenInfo.tokenId || tokenInfo.tendency === "?" || !tokenInfo.expression) {
+            counter.textContent = "#0";
+            if (toggleText) toggleText.textContent = "?";
+            if (toggleTextMobile) toggleTextMobile.textContent = "?";
+            if (highlight) highlight.textContent = "CHOICE";
+            if (highlightMobile) highlightMobile.textContent = "CHOICE";
+            initialTendency = "?";
+            initialExpression = "CHOICE";
+            stopIdleCounter(0);
+            if (mintBtn.textContent.trim().toUpperCase() === 'MINT') {
+                if (highlight) validateAndUpdateUI("CHOICE");
+                if (highlightMobile) validateAndUpdateUI("CHOICE");
+            }
+            updateExpressionsMarquee();
+            return;
+        }
         const { tokenId, tendency, expression } = tokenInfo;
         counter.textContent = `#${tokenId}`;
         if (toggleText) toggleText.textContent = tendency;
@@ -440,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 clearInterval(expressionInterval);
                 isMinting = false;
-                console.error('Mint failed:', error);
+                debugWarn('Mint failed:', error);
             }
         }
     });
@@ -554,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
                 }
             } catch (error) {
-                console.error('Error checking wallet connection:', error);
+                debugWarn('Error checking wallet connection:', error);
             }
         }
     }
@@ -601,6 +633,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update UI
                 mintBtn.textContent = 'MINT';
                 walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
+                // Nach erfolgreichem Connect: Daten neu laden
+                const tokenInfo = await fetchLatestTokenInfo();
+                updateUIWithTokenInfo(tokenInfo);
+                updateExpressionsMarquee();
                 closeModalFunc();
                 // Listen for account changes
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
@@ -612,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (error && (error.code === 4001 || error.message?.includes('User rejected'))) {
                     walletStatus.textContent = 'Connection cancelled. Please try again.';
                 } else {
-                    console.error('Error connecting to wallet:', error);
+                    debugWarn('Error connecting to wallet:', error);
                     walletStatus.textContent = 'Please install an EVM-compatible wallet!';
                 }
             }
@@ -651,6 +687,9 @@ document.addEventListener('DOMContentLoaded', () => {
             mintBtn.textContent = 'MINT';
             walletStatus.textContent = '';
             closeModalFunc();
+            // Nach Chain-Wechsel: Daten neu laden
+            fetchLatestTokenInfo().then(updateUIWithTokenInfo);
+            updateExpressionsMarquee();
         }
     }
 
@@ -733,7 +772,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const allExpressions = [];
         const allIds = [];
         const nextTokenId = await contract.nextTokenId();
-        
+        debugLog('[fetchAllExpressionsBatched] nextTokenId:', nextTokenId.toString());
+        if (nextTokenId <= 1n) {
+            usedWordsSet = new Set();
+            return [];
+        }
         // Optimierte Batch-Verarbeitung
         const batches = [];
         for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
@@ -741,23 +784,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (start + BigInt(batchSize) - 1n < end) {
                 end = start + BigInt(batchSize) - 1n;
             }
+            if (start > end) continue; // Niemals ungültige Bereiche pushen!
             batches.push([start, end]);
         }
-        
-        // Parallele Verarbeitung der Batches
+        debugLog('[fetchAllExpressionsBatched] batches:', batches);
+        // Parallele Verarbeitung der Batches mit Fehlerbehandlung
         const results = await Promise.all(
-            batches.map(([start, end]) => contract.getExpressionsInRange(start, end))
+            batches.map(async ([start, end]) => {
+                try {
+                    return await contract.getExpressionsInRange(start, end);
+                } catch (e) {
+                    debugWarn('getExpressionsInRange error', start.toString(), end.toString(), e);
+                    return [[], []];
+                }
+            })
         );
-        
         results.forEach(([expressions, ids]) => {
             allExpressions.push(...expressions);
             allIds.push(...ids);
         });
-        
         // Sofortige Aktualisierung des usedWordsSet
         const newUsedWordsSet = new Set(allExpressions.map(expr => (expr.word || expr[1] || '').toUpperCase()));
         usedWordsSet = newUsedWordsSet;
-        
         return allExpressions.map((expr, i) => ({
             ...expr,
             tokenId: Number(allIds[i])
@@ -805,7 +853,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const expressions = await fetchAllExpressionsBatched();
         const marqueeContent = document.querySelector('.expressions-content');
         const marqueeContainer = document.querySelector('.expressions-marquee');
-        if (marqueeContent && expressions.length > 0 && marqueeContainer) {
+        if (marqueeContent && marqueeContainer) {
+            if (expressions.length === 0) {
+                marqueeContent.innerHTML = '';
+                return;
+            }
             const wordHTML = expressions.map(expr => 
                 `<span>${expr.word || expr[1] || expr.expression || JSON.stringify(expr)}</span>`
             ).join('<span class="dot">&nbsp;&middot;&nbsp;</span>');
@@ -996,6 +1048,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isPlaying = true;
         } catch (e) {
             isPlaying = false;
+            debugWarn('Error starting player:', e);
         }
         isLoading = false;
         updatePlayPauseIcon();
@@ -1006,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await playTrack(currentTrackIndex);
             } catch (e) {
-                console.error('Error starting player:', e);
+                debugWarn('Error starting player:', e);
             }
         } else if (isPlaying && !audio.paused) {
             audio.pause();
@@ -1018,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isPlaying = true;
             } catch (e) {
                 isPlaying = false;
-                console.error('Error playing:', e);
+                debugWarn('Error playing:', e);
             }
             updatePlayPauseIcon();
         }
@@ -1066,15 +1119,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const nextTokenId = await contract.nextTokenId();
+        debugLog('[fetchLatestTokenInfo] nextTokenId:', nextTokenId.toString());
+        if (nextTokenId <= 1n) {
+            return {
+                tokenId: 0,
+                tendency: "?",
+                expression: "CHOICE"
+            };
+        }
         for (let i = nextTokenId - 1n; i >= 1n; i--) {
-            const [expressions, ids] = await contract.getExpressionsInRange(i, i);
-            if (ids.length > 0) {
-                const expr = expressions[0];
-                return {
-                    tokenId: Number(ids[0]),
-                    tendency: expr.isBest ? "best" : "worst",
-                    expression: expr.word
-                };
+            try {
+                const [expressions, ids] = await contract.getExpressionsInRange(i, i);
+                debugLog('getExpressionsInRange', i.toString(), expressions, ids);
+                if (ids.length > 0) {
+                    const expr = expressions[0];
+                    return {
+                        tokenId: Number(ids[0]),
+                        tendency: expr.isBest ? "best" : "worst",
+                        expression: expr.word
+                    };
+                }
+            } catch (e) {
+                debugWarn('getExpressionsInRange error', i.toString(), e);
+                // Fehler beim Lesen: Token existiert nicht wirklich!
+                continue;
             }
         }
         // Fallback, if no token exists
