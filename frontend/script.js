@@ -511,17 +511,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const connectWalletBtn = document.getElementById('connectWallet');
     const walletStatus = document.getElementById('walletStatus');
 
-    // BASE Mainnet Daten
+    // BASE Sepolia Testnet Daten
     const BASE_PARAMS = {
-        chainId: '0x2105', // BASE Mainnet Chain ID
-        chainName: 'Base Mainnet',
+        chainId: '0x14a33', // BASE Sepolia Chain ID
+        chainName: 'Base Sepolia',
         nativeCurrency: {
             name: 'Ethereum',
             symbol: 'ETH',
             decimals: 18
         },
-        rpcUrls: ['https://mainnet.base.org'],
-        blockExplorerUrls: ['https://basescan.org']
+        rpcUrls: ['https://sepolia.base.org'],
+        blockExplorerUrls: ['https://sepolia.basescan.org']
     };
 
     // Modal Functions
@@ -585,11 +585,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 });
                                 chainId = BASE_PARAMS.chainId;
                             } catch (addError) {
-                                walletStatus.textContent = 'Please add BASE Mainnet to your wallet.';
+                                walletStatus.textContent = 'Please add BASE Sepolia to your wallet.';
                                 return;
                             }
                         } else {
-                            walletStatus.textContent = 'Please switch to BASE Mainnet in your wallet.';
+                            walletStatus.textContent = 'Please switch to BASE Sepolia in your wallet.';
                             return;
                         }
                     }
@@ -644,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isConnected = false;
             currentAccount = null;
             mintBtn.textContent = 'CONNECT';
-            walletStatus.textContent = 'Please switch to BASE Mainnet in your wallet.';
+            walletStatus.textContent = 'Please switch to BASE Sepolia in your wallet.';
             openModal();
         } else {
             isConnected = true;
@@ -656,10 +656,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     connectWalletBtn.addEventListener('click', connectWallet);
 
-    // Contract address (Sepolia, Stand Januar 2025)
-    const CONTRACT_ADDRESS = "0x304d71B405be7D01727fD75453D2D56F32c0D8A0";
+    // Contract address (BASE Sepolia Testnet)
+    const CONTRACT_ADDRESS = "0x2Fa15095D1b9b6D3FD9Cc6743770479d7BA12964";
 
-    // Contract ABI (nur relevante Funktionen)
+    // Contract ABI (vollständig, aus artifacts übernommen)
     const contractABI = [
         {
             "inputs": [
@@ -691,7 +691,6 @@ document.addEventListener('DOMContentLoaded', () => {
             "stateMutability": "view",
             "type": "function"
         },
-        // Getter for usedWords
         {
             "inputs": [
                 { "internalType": "string", "name": "", "type": "string" }
@@ -703,12 +702,33 @@ document.addEventListener('DOMContentLoaded', () => {
             "stateMutability": "view",
             "type": "function"
         },
-        "function getExpressionsInRange(uint256 start, uint256 end) public view returns (tuple(bool isBest, string word, uint256 timestamp)[] memory, uint256[] memory)",
+        {
+            "inputs": [
+                { "internalType": "uint256", "name": "start", "type": "uint256" },
+                { "internalType": "uint256", "name": "end", "type": "uint256" }
+            ],
+            "name": "getExpressionsInRange",
+            "outputs": [
+                {
+                    "components": [
+                        { "internalType": "bool", "name": "isBest", "type": "bool" },
+                        { "internalType": "string", "name": "word", "type": "string" },
+                        { "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+                    ],
+                    "internalType": "struct WordOfChoiceLife.Expression[]",
+                    "name": "",
+                    "type": "tuple[]"
+                },
+                { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
     ];
 
     // Optimierte Aktualisierung der usedWordsSet
     async function fetchAllExpressionsBatched(batchSize = 200) {
-        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
+        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const allExpressions = [];
         const allIds = [];
@@ -1043,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch latest token info using the new batched contract logic
     async function fetchLatestTokenInfo() {
-        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
+        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const nextTokenId = await contract.nextTokenId();
         for (let i = nextTokenId - 1n; i >= 1n; i--) {
