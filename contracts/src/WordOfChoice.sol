@@ -105,8 +105,6 @@ contract WordOfChoiceLife is ERC721, Ownable, ReentrancyGuard {
                 '"name":"CHOICE (life) #', tokenId.toString(), '",',
                 '"description":"', description, '",',
                 '"image":"data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '",',
-                '"background_color":"F5E9D4",',
-                '"animation_url":null,',
                 '"attributes":[',
                     '{"trait_type":"Tendency","value":"', tendency, '"},',
                     '{"trait_type":"Expression","value":"', expr.word, '"},',

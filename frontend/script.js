@@ -650,7 +650,7 @@ document.addEventListener('DOMContentLoaded', () => {
     connectWalletBtn.addEventListener('click', connectWallet);
 
     // Contract address (Sepolia, Stand Januar 2025)
-    const contractAddress = "0xa152243ee777DD305eBB0F46bF21CE6601CDd9Ec";
+    const CONTRACT_ADDRESS = "0xa152243ee777DD305eBB0F46bF21CE6601CDd9Ec";
 
     // Contract ABI (nur relevante Funktionen)
     const contractABI = [
@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Optimierte Aktualisierung der usedWordsSet
     async function fetchAllExpressionsBatched(batchSize = 200) {
         const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-        const contract = new ethers.Contract(contractAddress, contractABI, provider);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const allExpressions = [];
         const allIds = [];
         const nextTokenId = await contract.nextTokenId();
@@ -870,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const contract = new ethers.Contract(
-            contractAddress,
+            CONTRACT_ADDRESS,
             contractABI,
             signer
         );
@@ -1037,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch latest token info using the new batched contract logic
     async function fetchLatestTokenInfo() {
         const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
-        const contract = new ethers.Contract(contractAddress, contractABI, provider);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
         const nextTokenId = await contract.nextTokenId();
         for (let i = nextTokenId - 1n; i >= 1n; i--) {
             const [expressions, ids] = await contract.getExpressionsInRange(i, i);
