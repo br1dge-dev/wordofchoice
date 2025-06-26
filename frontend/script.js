@@ -15,39 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Retry-Mechanismus für robuste Contract-Calls
-    async function fetchWithRetry(fn, retries = 3, baseDelay = 1000) {
-        for (let i = 0; i < retries; i++) {
-            try {
-                return await fn();
-            } catch (e) {
-                debugWarn(`Attempt ${i + 1} failed:`, e.message);
-                if (i === retries - 1) {
-                    debugWarn('All retry attempts failed');
-                    throw e;
-                }
-                // Exponentieller Backoff: 1s, 2s, 4s
-                const delay = baseDelay * Math.pow(2, i);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
-    }
-
-    // Loading-State Management
-    let isLoading = false;
-    
-    function setLoadingState(loading) {
-        isLoading = loading;
-        if (loading) {
-            // Zeige Loading-Indikator statt Idle-Animation
-            if (counter) counter.textContent = "Lade...";
-            if (toggleText) toggleText.textContent = "⏳";
-            if (toggleTextMobile) toggleTextMobile.textContent = "⏳";
-            if (highlight) highlight.textContent = "Daten werden geladen...";
-            if (highlightMobile) highlightMobile.textContent = "Daten werden geladen...";
-        }
-    }
-
     // --- Declare ALL DOM elements at the top ---
     const body = document.body;
     const toggleButton = document.querySelector('.toggle-button');
@@ -666,26 +633,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update UI
                 mintBtn.textContent = 'MINT';
                 walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
-                // Nach erfolgreichem Connect: Daten mit Retry neu laden
+                
+                // Nach erfolgreichem Connect: Daten explizit neu laden
+                console.log('[DEBUG] Wallet connected, loading data...');
                 try {
                     const tokenInfo = await fetchLatestTokenInfo();
+                    console.log('[DEBUG] Loaded token info after wallet connect:', tokenInfo);
                     updateUIWithTokenInfo(tokenInfo);
                     await updateExpressionsMarquee();
-                } catch (error) {
-                    debugWarn('Failed to reload data after wallet connect:', error);
+                    
+                    // Validiere den aktuellen Ausdruck
+                    if (highlight) {
+                        const currentExpression = highlight.textContent || '';
+                        console.log('[DEBUG] Validating current expression after connect:', currentExpression);
+                        const validationResult = await validateInput(currentExpression);
+                        updateValidationUI(validationResult);
+                    }
+                } catch (dataError) {
+                    console.error('[ERROR] Failed to load data after wallet connect:', dataError);
                 }
+                
                 closeModalFunc();
                 // Listen for account changes
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
                 window.ethereum.on('chainChanged', handleChainChanged);
-                // --- NEW: After successful connect, validate current expression ---
-                const validationResult = await validateInput(highlight.textContent);
-                updateValidationUI(validationResult);
             } catch (error) {
                 if (error && (error.code === 4001 || error.message?.includes('User rejected'))) {
                     walletStatus.textContent = 'Connection cancelled. Please try again.';
                 } else {
-                    debugWarn('Error connecting to wallet:', error);
+                    console.error('[ERROR] Error connecting to wallet:', error);
                     walletStatus.textContent = 'Please install an EVM-compatible wallet!';
                 }
             }
@@ -709,10 +685,29 @@ document.addEventListener('DOMContentLoaded', () => {
             mintBtn.textContent = 'MINT';
             walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
             closeModalFunc();
+            
+            // Nach Account-Wechsel: Daten explizit neu laden
+            console.log('[DEBUG] Account changed, reloading data...');
+            (async () => {
+                try {
+                    const tokenInfo = await fetchLatestTokenInfo();
+                    console.log('[DEBUG] Token info after account change:', tokenInfo);
+                    updateUIWithTokenInfo(tokenInfo);
+                    await updateExpressionsMarquee();
+                    
+                    // Validiere den aktuellen Ausdruck
+                    if (highlight && highlight.textContent) {
+                        const validationResult = await validateInput(highlight.textContent);
+                        updateValidationUI(validationResult);
+                    }
+                } catch (error) {
+                    console.error('[ERROR] Failed to reload data after account change:', error);
+                }
+            })();
         }
     }
 
-    async function handleChainChanged(_chainId) {
+    function handleChainChanged(_chainId) {
         if (_chainId !== BASE_PARAMS.chainId) {
             isConnected = false;
             currentAccount = null;
@@ -724,14 +719,25 @@ document.addEventListener('DOMContentLoaded', () => {
             mintBtn.textContent = 'MINT';
             walletStatus.textContent = '';
             closeModalFunc();
-            // Nach Chain-Wechsel: Daten mit Retry neu laden
-            try {
-                const tokenInfo = await fetchLatestTokenInfo();
-                updateUIWithTokenInfo(tokenInfo);
-                await updateExpressionsMarquee();
-            } catch (error) {
-                debugWarn('Failed to reload data after chain change:', error);
-            }
+            
+            // Nach Chain-Wechsel: Daten explizit neu laden
+            console.log('[DEBUG] Chain changed to BASE, reloading data...');
+            (async () => {
+                try {
+                    const tokenInfo = await fetchLatestTokenInfo();
+                    console.log('[DEBUG] Token info after chain change:', tokenInfo);
+                    updateUIWithTokenInfo(tokenInfo);
+                    await updateExpressionsMarquee();
+                    
+                    // Validiere den aktuellen Ausdruck
+                    if (highlight && highlight.textContent) {
+                        const validationResult = await validateInput(highlight.textContent);
+                        updateValidationUI(validationResult);
+                    }
+                } catch (error) {
+                    console.error('[ERROR] Failed to reload data after chain change:', error);
+                }
+            })();
         }
     }
 
@@ -809,54 +815,118 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Optimierte Aktualisierung der usedWordsSet
     async function fetchAllExpressionsBatched(batchSize = 200) {
+        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
+        const allExpressions = [];
+        const allIds = [];
+        
+        // Aktiviere Debug-Logging temporär für Fehlerbehebung
+        const DEBUG_LOGGING = true;
+        
         try {
-            return await fetchWithRetry(async () => {
-                const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
-                const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
-                const allExpressions = [];
-                const allIds = [];
-                const nextTokenId = await contract.nextTokenId();
-                debugLog('[fetchAllExpressionsBatched] nextTokenId:', nextTokenId.toString());
-                if (nextTokenId <= 1n) {
-                    usedWordsSet = new Set();
-                    return [];
+            const nextTokenId = await contract.nextTokenId();
+            if (DEBUG_LOGGING) console.log('[DEBUG] nextTokenId:', nextTokenId.toString());
+            
+            if (nextTokenId <= 1n) {
+                usedWordsSet = new Set();
+                return [];
+            }
+            
+            // Optimierte Batch-Verarbeitung
+            const batches = [];
+            for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
+                let end = nextTokenId - 1n;
+                if (start + BigInt(batchSize) - 1n < end) {
+                    end = start + BigInt(batchSize) - 1n;
                 }
-                // Optimierte Batch-Verarbeitung
-                const batches = [];
-                for (let start = 1n; start < nextTokenId; start += BigInt(batchSize)) {
-                    let end = nextTokenId - 1n;
-                    if (start + BigInt(batchSize) - 1n < end) {
-                        end = start + BigInt(batchSize) - 1n;
+                if (start > end) continue; // Niemals ungültige Bereiche pushen!
+                batches.push([start, end]);
+            }
+            
+            if (DEBUG_LOGGING) console.log('[DEBUG] batches:', batches);
+            
+            // Parallele Verarbeitung der Batches mit Fehlerbehandlung
+            const results = await Promise.all(
+                batches.map(async ([start, end]) => {
+                    try {
+                        const result = await contract.getExpressionsInRange(start, end);
+                        if (DEBUG_LOGGING) console.log('[DEBUG] getExpressionsInRange result:', start.toString(), end.toString(), result);
+                        return result;
+                    } catch (e) {
+                        console.error('[ERROR] getExpressionsInRange error', start.toString(), end.toString(), e);
+                        return [[], []];
                     }
-                    if (start > end) continue; // Niemals ungültige Bereiche pushen!
-                    batches.push([start, end]);
+                })
+            );
+            
+            // Verarbeite die Ergebnisse und normalisiere die Datenstruktur
+            results.forEach(([expressions, ids]) => {
+                if (DEBUG_LOGGING) console.log('[DEBUG] Processing batch result:', expressions, ids);
+                
+                // Überprüfe, ob expressions ein Array ist
+                if (!Array.isArray(expressions) || !Array.isArray(ids)) {
+                    console.error('[ERROR] Unexpected data format:', expressions, ids);
+                    return;
                 }
-                debugLog('[fetchAllExpressionsBatched] batches:', batches);
-                // Parallele Verarbeitung der Batches mit Fehlerbehandlung
-                const results = await Promise.all(
-                    batches.map(async ([start, end]) => {
-                        try {
-                            const [expressions, ids] = await contract.getExpressionsInRange(start, end);
-                            return { expressions, ids };
-                        } catch (e) {
-                            debugWarn('getExpressionsInRange error', start.toString(), end.toString(), e);
-                            return [[], []];
+                
+                // Verarbeite jedes Expression-Objekt und normalisiere es
+                for (let i = 0; i < expressions.length; i++) {
+                    const expr = expressions[i];
+                    const id = ids[i];
+                    
+                    // Überprüfe die Struktur des Expression-Objekts
+                    if (expr) {
+                        // Normalisiere das Objekt basierend auf der tatsächlichen Struktur
+                        let normalizedExpr;
+                        
+                        if (typeof expr === 'object') {
+                            if (DEBUG_LOGGING) console.log('[DEBUG] Expression object structure:', Object.keys(expr));
+                            
+                            // Versuche, die Werte aus dem Objekt zu extrahieren, unabhängig davon, ob es
+                            // ein Array-ähnliches Objekt oder ein normales Objekt ist
+                            const isBest = expr.isBest !== undefined ? expr.isBest : 
+                                          (expr[0] !== undefined ? expr[0] : false);
+                            
+                            const word = expr.word !== undefined ? expr.word : 
+                                        (expr[1] !== undefined ? expr[1] : '');
+                            
+                            const timestamp = expr.timestamp !== undefined ? expr.timestamp : 
+                                             (expr[2] !== undefined ? expr[2] : 0);
+                            
+                            normalizedExpr = {
+                                isBest: isBest,
+                                word: word,
+                                timestamp: timestamp
+                            };
+                        } else {
+                            console.error('[ERROR] Expression is not an object:', expr);
+                            continue;
                         }
-                    })
-                );
-                // Sammle alle Ergebnisse
-                results.forEach(({ expressions, ids }) => {
-                    allExpressions.push(...expressions);
-                    allIds.push(...ids);
-                });
-                // Erstelle Set für usedWords
-                usedWordsSet = new Set(allExpressions.map(expr => expr.word));
-                return allExpressions;
+                        
+                        allExpressions.push(normalizedExpr);
+                        allIds.push(id);
+                    }
+                }
             });
+            
+            // Sofortige Aktualisierung des usedWordsSet
+            const newUsedWordsSet = new Set(allExpressions.map(expr => {
+                const word = expr.word || '';
+                return word.toUpperCase();
+            }).filter(word => word !== '' && word !== 'CHOICE' && word !== '?'));
+            
+            if (DEBUG_LOGGING) console.log('[DEBUG] usedWordsSet:', Array.from(newUsedWordsSet));
+            usedWordsSet = newUsedWordsSet;
+            
+            const finalResult = allExpressions.map((expr, i) => ({
+                ...expr,
+                tokenId: Number(allIds[i])
+            }));
+            
+            if (DEBUG_LOGGING) console.log('[DEBUG] Final result:', finalResult);
+            return finalResult;
         } catch (error) {
-            debugWarn('fetchAllExpressionsBatched failed after all retries:', error);
-            // Bei komplettem Fehler: Leeres Array zurückgeben
-            usedWordsSet = new Set();
+            console.error('[ERROR] Fatal error in fetchAllExpressionsBatched:', error);
             return [];
         }
     }
@@ -899,29 +969,47 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modifiziere updateExpressionsMarquee um Pause zu berücksichtigen
     async function updateExpressionsMarquee() {
         if (isPaused) return;
-        const expressions = await fetchAllExpressionsBatched();
-        // Filtere alle Fallback/Initialwerte heraus
-        const filtered = expressions.filter(expr => {
-            if (!expr) return false;
-            if (!expr.word || expr.word === "CHOICE" || expr.word === "?" || expr.tokenId === 0) return false;
-            return true;
-        });
-        const marqueeContent = document.querySelector('.expressions-content');
-        const marqueeContainer = document.querySelector('.expressions-marquee');
-        if (marqueeContent && marqueeContainer) {
-            if (filtered.length === 0) {
-                marqueeContent.innerHTML = '';
-                return;
+        
+        try {
+            const expressions = await fetchAllExpressionsBatched();
+            console.log('[DEBUG] updateExpressionsMarquee expressions:', expressions);
+            
+            // Filtere alle Fallback/Initialwerte heraus
+            const filtered = expressions.filter(expr => {
+                if (!expr) return false;
+                const word = expr.word || '';
+                return word !== '' && 
+                       word !== 'CHOICE' && 
+                       word !== '?' && 
+                       expr.tokenId !== 0;
+            });
+            
+            console.log('[DEBUG] filtered expressions for marquee:', filtered);
+            
+            const marqueeContent = document.querySelector('.expressions-content');
+            const marqueeContainer = document.querySelector('.expressions-marquee');
+            
+            if (marqueeContent && marqueeContainer) {
+                if (filtered.length === 0) {
+                    marqueeContent.innerHTML = '';
+                    return;
+                }
+                
+                const wordHTML = filtered.map(expr => {
+                    const word = expr.word || '';
+                    return word ? `<span>${word}</span>` : '';
+                }).filter(html => html !== '').join('<span class="dot">&nbsp;&middot;&nbsp;</span>');
+                
+                marqueeContent.innerHTML = wordHTML;
+                
+                let repeat = 1;
+                while (marqueeContent.scrollWidth < marqueeContainer.offsetWidth * 2.5 && repeat < 30) {
+                    marqueeContent.innerHTML += wordHTML;
+                    repeat++;
+                }
             }
-            const wordHTML = filtered.map(expr => 
-                `<span>${expr.word || expr[1] || expr.expression || JSON.stringify(expr)}</span>`
-            ).join('<span class="dot">&nbsp;&middot;&nbsp;</span>');
-            marqueeContent.innerHTML = wordHTML;
-            let repeat = 1;
-            while (marqueeContent.scrollWidth < marqueeContainer.offsetWidth * 2.5 && repeat < 30) {
-                marqueeContent.innerHTML += wordHTML;
-                repeat++;
-            }
+        } catch (error) {
+            console.error('[ERROR] Failed to update expressions marquee:', error);
         }
     }
 
@@ -955,8 +1043,30 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(async () => {
         clearInterval(pageloadIdleInterval);
         isIdle = false; // After animation: counter is in real mode
-        const tokenInfo = await fetchLatestTokenInfo();
-        updateUIWithTokenInfo(tokenInfo);
+        
+        // Lade Daten explizit nach dem Laden der Seite
+        console.log('[DEBUG] Loading initial data after page load...');
+        try {
+            // Lade die neuesten Token-Informationen
+            const tokenInfo = await fetchLatestTokenInfo();
+            console.log('[DEBUG] Initial token info loaded:', tokenInfo);
+            updateUIWithTokenInfo(tokenInfo);
+            
+            // Lade alle Expressions für die Marquee
+            await fetchAllExpressionsBatched();
+            await updateExpressionsMarquee();
+            
+            // Aktualisiere die UI basierend auf den geladenen Daten
+            if (highlight && highlight.textContent) {
+                const currentExpression = highlight.textContent;
+                console.log('[DEBUG] Validating initial expression:', currentExpression);
+                const validationResult = await validateInput(currentExpression);
+                updateValidationUI(validationResult);
+            }
+        } catch (error) {
+            console.error('[ERROR] Failed to load initial data:', error);
+        }
+        
         setAllButtonsEnabled(true);
     }, 2500);
 
@@ -1044,7 +1154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTrackIndex = 0;
     let audio = null;
     let isPlaying = false;
-    let isMusicLoading = false;
+    let isLoading = false;
     let loadedTracks = [false]; // Initial: nothing loaded
 
     // Buttons
@@ -1097,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             audio.pause();
             audio.currentTime = 0;
         }
-        isMusicLoading = true;
+        isLoading = true;
         try {
             await audio.play();
             isPlaying = true;
@@ -1105,11 +1215,11 @@ document.addEventListener('DOMContentLoaded', () => {
             isPlaying = false;
             debugWarn('Error starting player:', e);
         }
-        isMusicLoading = false;
+        isLoading = false;
         updatePlayPauseIcon();
     }
     playPauseBtn.addEventListener('click', async () => {
-        if (isMusicLoading) return;
+        if (isLoading) return;
         if (!audio) {
             try {
                 await playTrack(currentTrackIndex);
@@ -1166,78 +1276,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Check every 30 seconds for updates
     setInterval(checkForChainUpdates, 30000);
-    
-    // Sofortige Initialisierung beim Laden (keine Verzögerung mehr)
-    async function initializeApp() {
-        try {
-            const tokenInfo = await fetchLatestTokenInfo();
-            updateUIWithTokenInfo(tokenInfo);
-            await updateExpressionsMarquee();
-        } catch (error) {
-            debugWarn('Initial app load failed:', error);
-            // Fallback: Zeige leeren Zustand
-            updateUIWithTokenInfo({
-                tokenId: 0,
-                tendency: "?",
-                expression: "CHOICE"
-            });
-        }
-    }
-    
-    // Starte sofort beim Laden
-    initializeApp();
+    // Immediately run on first load
+    checkForChainUpdates();
 
     // Fetch latest token info using the new batched contract logic
     async function fetchLatestTokenInfo() {
-        setLoadingState(true);
+        const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
+        
         try {
-            return await fetchWithRetry(async () => {
-                const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
-                const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
-                const nextTokenId = await contract.nextTokenId();
-                debugLog('[fetchLatestTokenInfo] nextTokenId:', nextTokenId.toString());
-                if (nextTokenId <= 1n) {
-                    return {
-                        tokenId: 0,
-                        tendency: "?",
-                        expression: "CHOICE"
-                    };
-                }
-                for (let i = nextTokenId - 1n; i >= 1n; i--) {
-                    try {
-                        const [expressions, ids] = await contract.getExpressionsInRange(i, i);
-                        debugLog('getExpressionsInRange', i.toString(), expressions, ids);
-                        if (ids.length > 0) {
-                            const expr = expressions[0];
-                            return {
-                                tokenId: Number(ids[0]),
-                                tendency: expr.isBest ? "best" : "worst",
-                                expression: expr.word
-                            };
-                        }
-                    } catch (e) {
-                        debugWarn('getExpressionsInRange error', i.toString(), e);
-                        // Fehler beim Lesen: Token existiert nicht wirklich!
-                        continue;
-                    }
-                }
-                // Fallback, if no token exists
+            const nextTokenId = await contract.nextTokenId();
+            console.log('[DEBUG] fetchLatestTokenInfo nextTokenId:', nextTokenId.toString());
+            
+            if (nextTokenId <= 1n) {
                 return {
                     tokenId: 0,
                     tendency: "?",
                     expression: "CHOICE"
                 };
-            });
-        } catch (error) {
-            debugWarn('fetchLatestTokenInfo failed after all retries:', error);
-            // Bei komplettem Fehler: Fallback zurückgeben
+            }
+            
+            for (let i = nextTokenId - 1n; i >= 1n; i--) {
+                try {
+                    const [expressions, ids] = await contract.getExpressionsInRange(i, i);
+                    console.log('[DEBUG] getExpressionsInRange', i.toString(), expressions, ids);
+                    
+                    if (ids.length > 0) {
+                        const expr = expressions[0];
+                        
+                        // Normalisiere das Expression-Objekt
+                        let tendency, word;
+                        
+                        if (typeof expr === 'object') {
+                            // Extrahiere Werte basierend auf der tatsächlichen Struktur
+                            tendency = expr.isBest !== undefined ? expr.isBest : 
+                                      (expr[0] !== undefined ? expr[0] : false);
+                            
+                            word = expr.word !== undefined ? expr.word : 
+                                  (expr[1] !== undefined ? expr[1] : 'CHOICE');
+                        } else {
+                            console.error('[ERROR] Expression is not an object:', expr);
+                            continue;
+                        }
+                        
+                        return {
+                            tokenId: Number(ids[0]),
+                            tendency: tendency === true ? "best" : "worst",
+                            expression: word
+                        };
+                    }
+                } catch (e) {
+                    console.error('[ERROR] getExpressionsInRange error', i.toString(), e);
+                    // Fehler beim Lesen: Token existiert nicht wirklich!
+                    continue;
+                }
+            }
+            
+            // Fallback, if no token exists
             return {
                 tokenId: 0,
                 tendency: "?",
                 expression: "CHOICE"
             };
-        } finally {
-            setLoadingState(false);
+        } catch (error) {
+            console.error('[ERROR] Fatal error in fetchLatestTokenInfo:', error);
+            return {
+                tokenId: 0,
+                tendency: "?",
+                expression: "CHOICE"
+            };
         }
     }
 
