@@ -1131,21 +1131,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.error(`[fetchLatestTokenInfo] Fehler bei getExpressionsInRange(${i}, ${i}):`, err);
                 }
             }
-            // Fallback, wenn kein Token existiert
-            const fallback = {
-                tokenId: 0,
-                tendency: "?",
-                expression: "CHOICE"
-            };
-            cachedTokenInfo = fallback;
-            tokenInfoFetchError = null;
-            return fallback;
+            // Fallback NUR beim allerersten Laden, sonst letzten gültigen State behalten
+            if (!cachedTokenInfo) {
+                const fallback = {
+                    tokenId: 0,
+                    tendency: "?",
+                    expression: "CHOICE"
+                };
+                cachedTokenInfo = fallback;
+                tokenInfoFetchError = null;
+                return fallback;
+            } else {
+                // Letzten gültigen State zurückgeben
+                return cachedTokenInfo;
+            }
         } catch (err) {
             console.error('[fetchLatestTokenInfo] Allgemeiner Fehler:', err);
             tokenInfoFetchError = err;
             // Gib letzten Cache zurück, falls vorhanden
             if (cachedTokenInfo) return cachedTokenInfo;
-            // Sonst Fallback
+            // Sonst Fallback (nur beim allerersten Laden)
             return {
                 tokenId: 0,
                 tendency: "?",
