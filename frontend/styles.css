@@ -1496,4 +1496,8 @@ body.toggled .expressions-marquee {
 
 .hide-on-small {
   display: inline;
+}
+
+.info-details-row b {
+  display: inline !important;
 } 
