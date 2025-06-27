@@ -425,11 +425,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Mint process (including wallet interaction)
                 await mintExpression(mintParams.isBest, mintParams.word);
 
-                // After successful confirmation: show new values
+                // Nach erfolgreichem Mint: Warte-Schleife wie beim Page-Load
                 clearInterval(expressionInterval);
                 isMinting = false;
-                const tokenInfo = await robustFetchLatestTokenInfo();
-                console.log('[Mint] TokenInfo nach Mint:', tokenInfo);
+                let tokenInfo = null;
+                let tries = 0;
+                while ((!tokenInfo || !tokenInfo.tokenId || tokenInfo.tokenId === 0) && tries < 15) {
+                    tokenInfo = await robustFetchLatestTokenInfo();
+                    if (tokenInfo && tokenInfo.tokenId && tokenInfo.tokenId !== 0) break;
+                    await new Promise(r => setTimeout(r, 700)); // 700ms warten
+                    tries++;
+                }
                 updateUIWithTokenInfo(tokenInfo);
                 // --- Guaranteed stop of idle animation after mint ---
                 if (tokenInfo && tokenInfo.tokenId !== undefined) {
@@ -1090,8 +1096,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     function isInitialState() {
         return (toggleText && toggleText.textContent === initialTendency) && (highlight && highlight.textContent === initialExpression);
     }
-
-    document.body.classList.add('toggled');
 
     // --- Automatisches Chain-Update for the marquee ---
     function checkForChainUpdates() {
