@@ -25,9 +25,6 @@
     "update:all": "npm update && cd contracts && npm update",
     "clean": "rm -rf frontend/node_modules contracts/node_modules node_modules"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "keywords": [
     "nft",
     "base",
