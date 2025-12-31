@@ -1,6 +1,39 @@
 {
-  "dependencies": {
-    "@openzeppelin/contracts": "^5.3.0",
-    "ethers": "^6.14.3"
-  }
+  "name": "wordofchoice",
+  "version": "1.0.0",
+  "description": "Word of Choice - An art, social, and onchain experiment where users can mint their own expressions as NFTs on BASE",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/br1dge-dev/wordofchoice.git"
+  },
+  "author": "br1dge",
+  "license": "MIT",
+  "workspaces": [
+    "frontend",
+    "contracts"
+  ],
+  "scripts": {
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "contracts:install": "cd contracts && npm install",
+    "contracts:compile": "cd contracts && npm run compile",
+    "contracts:test": "cd contracts && npm run test",
+    "contracts:deploy:base": "cd contracts && npm run deploy:base",
+    "contracts:deploy:sepolia": "cd contracts && npm run deploy:base-sepolia",
+    "install:all": "npm install && cd contracts && npm install",
+    "update:all": "npm update && cd contracts && npm update",
+    "clean": "rm -rf frontend/node_modules contracts/node_modules node_modules"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "nft",
+    "base",
+    "ethereum",
+    "smart-contracts",
+    "web3",
+    "art-experiment"
+  ]
 }
